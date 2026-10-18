@@ -4,9 +4,7 @@ import { createPinia } from 'pinia';
 import { createI18n } from 'vue-i18n';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import Settings from './md-status-display-settings.vue';
-import TaskbarPosition from './md-taskbar-position.vue';
 import { Select } from '@/components/ui/select';
-import WindowsFeedback from './md-windows-display-feedback.vue';
 import { ResidentService } from '@/lib/services/resident-service';
 import { WindowsMonitoringService } from '@/lib/services/windows-monitoring-service';
 import { useWindowsMonitoringStore } from '@/stores/windows-monitoring-store';
@@ -19,8 +17,6 @@ vi.mock('@/lib/services/resident-service', () => ({
     catalogue: vi.fn(),
     onReading: vi.fn(),
     preview: vi.fn(),
-    displayStatus: vi.fn(),
-    onDisplayStatus: vi.fn(),
     releaseMemory: vi.fn(),
     quit: vi.fn(),
     openMain: vi.fn(),
@@ -65,8 +61,6 @@ beforeEach(() => {
     driverAvailable: true,
     serviceInstalled: true,
   });
-  vi.mocked(ResidentService.displayStatus).mockResolvedValue('tray');
-  vi.mocked(ResidentService.onDisplayStatus).mockResolvedValue(vi.fn());
   vi.mocked(ResidentService.preferences).mockResolvedValue(preferencesFixture());
   vi.mocked(ResidentService.savePreferences).mockImplementation(async value => {
     const committed = { ...value, revision: value.revision + 1 };
@@ -646,8 +640,7 @@ describe('status display interactions', () => {
     await flushPromises();
     await openConfiguration(wrapper);
 
-    expect(wrapper.findComponent(TaskbarPosition).exists()).toBe(false);
-    expect(wrapper.findComponent(WindowsFeedback).exists()).toBe(false);
+    expect(wrapper.find('input[name="taskbar-position"]').exists()).toBe(false);
     expect(wrapper.find('#linux-tray-compact').exists()).toBe(true);
     expect(wrapper.find('#status-cpuTemperature').exists()).toBe(false);
     expect(wrapper.get('#resident-enabled-hint').text()).toBe('systemStatus.linuxDisplayHint');
@@ -701,44 +694,14 @@ describe('status display interactions', () => {
     expect(ResidentService.savePreferences).toHaveBeenCalledTimes(1);
   });
 
-  it('shows a Windows fallback on the main page without opening configuration', async () => {
-    vi.mocked(ResidentService.preferences).mockResolvedValue({
-      ...preferencesFixture(),
-    });
-    vi.mocked(ResidentService.displayStatus).mockResolvedValue('noSpace');
+  it('shows no taskbar status on the Windows main page because the display stays in the tray', async () => {
     const wrapper = mount(Settings, { props: { isMacOs: false }, global: global() });
     wrappers.push(wrapper);
     await flushPromises();
-    expect(wrapper.get('.status-settings [role="status"]').text()).toBe('systemStatus.taskbarNoSpace');
+    expect(wrapper.find('.status-settings [role="status"]').exists()).toBe(false);
     expect(wrapper.find('#resident-display-options').exists()).toBe(false);
     expect(ResidentService.catalogue).not.toHaveBeenCalled();
-    await wrapper.get('#resident-enabled').trigger('click');
-    await flushPromises();
-    expect(wrapper.find('#resident-configure').exists()).toBe(false);
-    expect(wrapper.find('.status-settings [role="status"]').exists()).toBe(false);
     expect(wrapper.get('#resident-enabled-hint').text()).toBe('systemStatus.displayHint');
-  });
-
-  it.each([true, false])('locks the last selected item with Logo=%s until another item is selected', async showIcon => {
-    vi.mocked(ResidentService.preferences).mockResolvedValue({
-      ...preferencesFixture(),
-      showIcon,
-      metrics: preferencesFixture().metrics.map(row => ({ ...row, enabled: !showIcon && row.id === 'memory' })),
-    });
-    const wrapper = mount(Settings, { props: { isMacOs: true }, global: global() });
-    wrappers.push(wrapper);
-    await flushPromises();
-    await openConfiguration(wrapper);
-    const last = wrapper.get(showIcon ? '#status-app-icon' : '#status-memory');
-    expect(last.attributes('disabled')).toBeDefined();
-    expect(last.attributes('aria-checked')).toBe('true');
-    await wrapper.get('#status-cpu').trigger('click');
-    await flushPromises();
-    expect(last.attributes('disabled')).toBeUndefined();
-    await last.trigger('click');
-    await flushPromises();
-    expect(wrapper.get('#status-cpu').attributes('disabled')).toBeDefined();
-    expect(ResidentService.savePreferences).toHaveBeenLastCalledWith(expect.objectContaining({ showIcon: false }));
   });
 
   it('shows the native Logo fallback as selected for older empty preferences without writing on load', async () => {
@@ -800,57 +763,16 @@ describe('status display interactions', () => {
     expect(wrapper.find('#resident-display-options').exists()).toBe(true);
   });
 
-  it('shows typed fallback feedback only for an active taskbar selection', async () => {
-    vi.mocked(ResidentService.displayStatus).mockResolvedValue('noSpace');
-    const preferences = { ...preferencesFixture() };
-    const wrapper = mount(WindowsFeedback, { props: { preferences }, global: global() });
-    wrappers.push(wrapper);
-    await flushPromises();
-    expect(wrapper.get('[role="status"]').text()).toBe('systemStatus.taskbarNoSpace');
-    await wrapper.setProps({ preferences: { ...preferences, enabled: false } });
-    expect(wrapper.find('[role="status"]').exists()).toBe(false);
-  });
-
-  it('keeps a newer display event when the initial status request resolves late', async () => {
-    let finish!: (value: 'noSpace') => void;
-    vi.mocked(ResidentService.displayStatus).mockReturnValue(new Promise(resolve => (finish = resolve)));
-    const stop = vi.fn();
-    vi.mocked(ResidentService.onDisplayStatus).mockImplementation(async listener => {
-      listener('taskbar');
-      return stop;
-    });
-    const wrapper = mount(WindowsFeedback, {
-      props: { preferences: { ...preferencesFixture() } },
-      global: global(),
-    });
-    await flushPromises();
-    finish('noSpace');
-    await flushPromises();
-    expect(wrapper.find('[role="status"]').exists()).toBe(false);
-    wrapper.unmount();
-    expect(stop).toHaveBeenCalledOnce();
-  });
-
-  it('switches Windows presentation while preserving metric choices and enables taskbar reordering', async () => {
+  it('offers no in-taskbar placement or background on Windows and keeps tray reordering', async () => {
     const wrapper = mount(Settings, { props: { isMacOs: false }, global: global() });
     wrappers.push(wrapper);
     await flushPromises();
     await openConfiguration(wrapper);
     expect(wrapper.find('input[name="windows-display-mode"]').exists()).toBe(false);
+    expect(wrapper.find('input[name="taskbar-position"]').exists()).toBe(false);
+    expect(wrapper.find('#taskbar-background').exists()).toBe(false);
+    expect(wrapper.find('#taskbar-compact').exists()).toBe(true);
     expect(wrapper.findAll('.drag-handle')).toHaveLength(8);
-    await wrapper.get('input[name="taskbar-position"][value="left"]').setValue(true);
-    await flushPromises();
-    expect(ResidentService.savePreferences).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        taskbarPosition: 'left',
-        metrics: preferencesFixture().metrics,
-      })
-    );
-    await wrapper.get('input[name="taskbar-position"][value="auto"]').setValue(true);
-    await flushPromises();
-    expect(ResidentService.savePreferences).toHaveBeenLastCalledWith(
-      expect.objectContaining({ schemaVersion: 25, taskbarPosition: 'auto' })
-    );
   });
 
   it('saves compact density without changing position or metric choices', async () => {
@@ -867,20 +789,6 @@ describe('status display interactions', () => {
     await flushPromises();
     expect(ResidentService.savePreferences).toHaveBeenLastCalledWith(
       expect.objectContaining({ taskbarCompact: false })
-    );
-  });
-
-  it('saves the taskbar background toggle without a display destination selector', async () => {
-    const wrapper = mount(Settings, { props: { isMacOs: false }, global: global() });
-    wrappers.push(wrapper);
-    await flushPromises();
-    await openConfiguration(wrapper);
-    expect(wrapper.find('#taskbar-background').exists()).toBe(true);
-    expect(wrapper.find('input[name="windows-display-mode"]').exists()).toBe(false);
-    await wrapper.get('#taskbar-background').trigger('click');
-    await flushPromises();
-    expect(ResidentService.savePreferences).toHaveBeenLastCalledWith(
-      expect.objectContaining({ taskbarBackground: false })
     );
   });
 

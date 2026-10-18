@@ -7,18 +7,11 @@ import type {
   ApplicationQuitStatus,
   MemoryReleaseResult,
   ResidentDestination,
-  ResidentDisplayStatus,
   ResidentPreferences,
   ResidentReading,
 } from '@/lib/models/resident';
 
 export class ResidentService {
-  static displayStatus(): Promise<ResidentDisplayStatus> {
-    return invoke('resident_get_display_status');
-  }
-  static onDisplayStatus(callback: (status: ResidentDisplayStatus) => void): Promise<UnlistenFn> {
-    return listen<ResidentDisplayStatus>('resident-display-status', event => callback(event.payload));
-  }
   static reading(): Promise<ResidentReading> {
     return invoke('monitoring_get_reading');
   }

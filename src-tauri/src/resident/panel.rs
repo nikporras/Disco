@@ -266,7 +266,7 @@ fn tray_owns_focus(app: &tauri::AppHandle) -> bool {
                     )
                 })
         });
-    if !over_entry && !super::taskbar_display::contains_point(app, cursor.x, cursor.y) {
+    if !over_entry {
         return false;
     }
     // Cursor position alone is insufficient: Alt+Tab must still dismiss the
@@ -418,8 +418,6 @@ fn show_window(app: &tauri::AppHandle) -> tauri::Result<()> {
             position.y + size.height / 2.0,
         )
     });
-    #[cfg(windows)]
-    let anchor = super::taskbar_display::anchor(app, &source).or(anchor);
     // Tray rectangles are physical pixels. On macOS monitor_from_point uses
     // logical screen points, so match against physical monitor bounds ourselves.
     let monitor = match anchor {

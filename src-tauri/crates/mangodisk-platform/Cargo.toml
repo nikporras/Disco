@@ -5,6 +5,9 @@ edition.workspace = true
 rust-version.workspace = true
 
 [features]
+# Optional PawnIO-backed CPU temperature through the privileged Windows service.
+# Off by default: Disco ships no kernel driver installer unless explicitly enabled.
+hardware-sensors = ["dep:mangodisk-privileged", "dep:mangodisk-privileged-protocol"]
 linux-desktop-icons = ["dep:gdk-pixbuf", "dep:gio", "dep:glib", "dep:gtk"]
 
 [dependencies]
@@ -42,8 +45,8 @@ libc = "0.2.190"
 walkdir = "2.5.0"
 
 [target.'cfg(windows)'.dependencies]
-mangodisk-privileged = { path = "../mangodisk-privileged" }
-mangodisk-privileged-protocol = { path = "../mangodisk-privileged-protocol" }
+mangodisk-privileged = { path = "../mangodisk-privileged", optional = true }
+mangodisk-privileged-protocol = { path = "../mangodisk-privileged-protocol", optional = true }
 base64 = "0.23.1"
 getrandom = "0.4.3"
 png = "0.18.1"

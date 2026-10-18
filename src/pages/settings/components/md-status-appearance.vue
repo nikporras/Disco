@@ -29,19 +29,6 @@ function changeCompact(enabled: boolean) {
 
 <template>
   <MdSettingsGroup plain :title="t('systemStatus.appearanceTitle')">
-    <MdSettingsRow
-      v-if="!isMacOs && !isLinux"
-      compact
-      :title="t('systemStatus.taskbarBackground')"
-      description=""
-      label-for="taskbar-background"
-    >
-      <MdSwitch
-        id="taskbar-background"
-        :model-value="preferences.taskbarBackground"
-        @update:model-value="emit('change', { taskbarBackground: $event })"
-      />
-    </MdSettingsRow>
     <MdSettingsRow compact :title="t('systemStatus.taskbarCompact')" description="" :label-for="compactControlId">
       <template #help>
         <MdTooltip :text="t('systemStatus.menuBarCompactHint')">

@@ -1,4 +1,6 @@
 //! Elevation adapters for the optional Windows sensor capability.
+//! The PawnIO-backed service ships only with the hardware-sensors feature;
+//! default builds report the capability as unsupported and never install it.
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -40,9 +42,9 @@ pub struct SetupResult {
 }
 
 pub fn observe() -> Observation {
-    #[cfg(windows)]
+    #[cfg(all(windows, feature = "hardware-sensors"))]
     return native::observe();
-    #[cfg(not(windows))]
+    #[cfg(not(all(windows, feature = "hardware-sensors")))]
     Observation {
         state: ServiceState::UnsupportedHardware,
         driver_available: false,
@@ -50,9 +52,9 @@ pub fn observe() -> Observation {
     }
 }
 pub async fn install(app: tauri::AppHandle) -> SetupResult {
-    #[cfg(windows)]
+    #[cfg(all(windows, feature = "hardware-sensors"))]
     return native::install(app).await;
-    #[cfg(not(windows))]
+    #[cfg(not(all(windows, feature = "hardware-sensors")))]
     {
         let _ = app;
         SetupResult {
@@ -62,9 +64,9 @@ pub async fn install(app: tauri::AppHandle) -> SetupResult {
     }
 }
 pub async fn uninstall(app: tauri::AppHandle, remove_driver: bool) -> SetupResult {
-    #[cfg(windows)]
+    #[cfg(all(windows, feature = "hardware-sensors"))]
     return native::uninstall(app, remove_driver).await;
-    #[cfg(not(windows))]
+    #[cfg(not(all(windows, feature = "hardware-sensors")))]
     {
         let _ = (app, remove_driver);
         SetupResult {
@@ -74,7 +76,7 @@ pub async fn uninstall(app: tauri::AppHandle, remove_driver: bool) -> SetupResul
     }
 }
 
-#[cfg(windows)]
+#[cfg(all(windows, feature = "hardware-sensors"))]
 mod native {
     use super::*;
     use mangodisk_privileged::windows::{client, deployment};

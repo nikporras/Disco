@@ -165,6 +165,7 @@ fn scan_items(
 ) -> (PrivacyScanResult, Vec<PrivacyItem>) {
     let scan = PrivacyService::scan(PrivacyScanRequest {
         time_range: PrivacyTimeRange::AllTime,
+        include_browsers: true,
     })
     .unwrap();
     let items = scan
@@ -566,6 +567,7 @@ fn native_privacy_execution_matrix() {
             }
             let scan = PrivacyService::scan(PrivacyScanRequest {
                 time_range: PrivacyTimeRange::AllTime,
+                include_browsers: true,
             })
             .unwrap();
             let item = scan

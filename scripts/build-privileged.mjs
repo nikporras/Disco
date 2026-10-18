@@ -2,10 +2,17 @@ import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-if (process.platform === 'win32') {
+// The privileged helper embeds the PawnIO driver installer. Disco builds it only when the
+// optional hardware-sensors capability is requested; the app must then be compiled with
+// `--features hardware-sensors` so it embeds the helper.
+const hardwareSensors = process.env.DISCO_HARDWARE_SENSORS === '1';
+if (process.platform === 'win32' && !hardwareSensors) {
+  console.log('Skipping privileged helper: set DISCO_HARDWARE_SENSORS=1 to build hardware sensors.');
+}
+if (process.platform === 'win32' && hardwareSensors) {
   const release = process.argv.includes('--release') && process.env.TAURI_ENV_DEBUG !== 'true';
   const target = process.env.TAURI_ENV_TARGET_TRIPLE;
-  const args = ['build', '--locked', '-p', 'mangodisk-privileged'];
+  const args = ['build', '--locked', '-p', 'mangodisk-privileged', '--features', 'hardware-sensors'];
   if (release) args.push('--release');
   if (target) args.push('--target', target);
   const result = spawnSync('cargo', args, { stdio: 'inherit' });

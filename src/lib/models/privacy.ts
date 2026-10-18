@@ -53,6 +53,8 @@ export type PrivacyDataKind =
 
 export interface PrivacyScanRequest {
   timeRange: PrivacyTimeRange;
+  /** Browser databases are scanned only when true; Core treats an omitted value as false. */
+  includeBrowsers: boolean;
 }
 
 export interface PrivacyScanProgress {

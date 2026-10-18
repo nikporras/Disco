@@ -136,6 +136,7 @@ fn actual_brave_origin_privacy_scan_returns_independent_evidence() {
     let _guard = crate::shared::operation::test_operation_lock();
     let result = PrivacyService::scan(PrivacyScanRequest {
         time_range: PrivacyTimeRange::AllTime,
+        include_browsers: true,
     })
     .unwrap();
     for source in ["brave", "brave-origin"] {

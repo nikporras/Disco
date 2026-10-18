@@ -13,6 +13,8 @@ import MdPermissionGuidance from '@/components/custom/md-permission-guidance.vue
 import MdResultWorkspace from '@/components/custom/md-result-workspace.vue';
 import MdSelectionActionBar from '@/components/custom/md-selection-action-bar.vue';
 import MdSelectionMode, { type MdSelectionModeOption } from '@/components/custom/md-selection-mode.vue';
+import MdSwitch from '@/components/custom/md-switch.vue';
+import MdTooltip from '@/components/custom/md-tooltip.vue';
 import MdIcon from '@/components/icons/md-icon.vue';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -279,6 +281,22 @@ watch(
   <MdPageShell class="privacy-page" content-mode="workspace" :title="t('privacy.title')">
     <template #overlay><MdAiWorkspace module="privacy" /></template>
     <template #actions>
+      <div class="include-browsers">
+        <span id="privacy-include-browsers-label">{{ t('privacy.includeBrowsers') }}</span>
+        <MdTooltip :text="t('privacy.includeBrowsersHint')">
+          <button type="button" class="md-help-action" :aria-label="t('privacy.includeBrowsersHint')">
+            <MdIcon :name="ICON_NAMES.help" :size="14" />
+          </button>
+        </MdTooltip>
+        <MdSwitch
+          id="privacy-include-browsers"
+          aria-labelledby="privacy-include-browsers-label"
+          :aria-description="t('privacy.includeBrowsersHint')"
+          :model-value="store.includeBrowsers"
+          :disabled="busy"
+          @update:model-value="store.setIncludeBrowsers($event)"
+        />
+      </div>
       <Select :key="locale" :model-value="store.timeRange" :disabled="busy" @update:model-value="updateTimeRange">
         <SelectTrigger class="time-range h-9" :aria-label="t('privacy.timeRangeLabel')">
           <SelectValue />
@@ -413,6 +431,14 @@ watch(
 <style scoped>
 @reference "@assets/main.css";
 
+.include-browsers {
+  @apply text-muted-foreground;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-content-body);
+  white-space: nowrap;
+}
 .time-range {
   width: 170px;
   @apply border-border/70 bg-card/35 shadow-none hover:border-border hover:bg-card/55;

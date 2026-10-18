@@ -211,6 +211,15 @@ Flujo de trabajo: cada fase en su propia rama (`fase-N-<tema>`, creada desde `ma
 - Conclusión: **.NET 10 es viable con un parche de una línea** (`Rewindable = true`) en la copia fijada de BCU, documentado y propuesto *upstream*.
 - Compilar BCU requiere el MSBuild de Visual Studio (referencia COM `Scripting`); `dotnet build` falla con `MSB4803`.
 
+### Fase 0b — Superficie mínima (antes del renombrado)
+Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de la Fase 0, y después puso en cuarentena el ejecutable y bloqueó la escritura de `MangoDiskPrivileged.exe`. La auditoría no encontró código malicioso, pero sí técnicas legítimas que los antivirus asocian con malware. Rama `fase-0b-superficie-minima`.
+- **Barra de tareas eliminada por completo**: código (`src-tauri/src/resident/taskbar_display`), DLL C++ (`src-tauri/windows/taskbar`), su compilación en `build.rs` (dependencia `cc`) y su carga en Explorer (`InitializeXamlDiagnosticsEx`). Las métricas se ven solo en el área de notificación. Los campos `taskbarPosition`/`taskbarBackground` se conservan en el esquema de preferencias guardadas por compatibilidad, sin interfaz.
+- **PawnIO y servicio privilegiado de temperatura fuera del build por defecto** con el feature `hardware-sensors` (en `mangodisk`, `mangodisk-platform` y `mangodisk-privileged`). Sin él, el binario `MangoDiskPrivileged.exe` (que incrusta `PawnIO_setup.exe`) no se compila, `build-privileged.mjs` no hace nada y la app informa del sensor como no compatible. El código se conserva para la fase de sensores. Para activarlo: `DISCO_HARDWARE_SENSORS=1` + `--features hardware-sensors`.
+- **Arranque automático y PowerShell elevado** solo como acciones explícitas (interruptor de Ajustes / botón de una tarea de mantenimiento). Ya era así; se añaden tests que lo vigilan.
+- **Privacidad de navegadores desactivada por defecto**: `PrivacyScanRequest.includeBrowsers` (por defecto `false` en Core y en la interfaz, no se recuerda entre sesiones). Sin activarlo no se abre ninguna base de datos de navegador.
+- Tests de guarda en `src-tauri/src/surface_tests.rs`: ninguna API de inyección en procesos, `build.rs` sin código nativo, sensores opcionales, arranque automático solo desde su comando.
+- **Prueba**: `pnpm check`; compilar y comprobar que Bitdefender ya no lo marca; Explorer sin `xaml-*.dll` de Disco.
+
 ### Fase 1 — Renombrado visible a Disco
 - Nivel 1 del §7 con el identificador `io.github.nikporras.disco` y `check:identity` actualizado (incluye comprobar que no hay endpoints de `mangodisk.app`).
 - Añadir `NOTICE` / `THIRD-PARTY-NOTICES` con MangoDisk (GPL) y BCU (Apache, aunque aún no se use).
@@ -249,9 +258,19 @@ Flujo de trabajo: cada fase en su propia rama (`fase-N-<tema>`, creada desde `ma
 ### Fase 9 — Extras y port progresivo
 - Windows Features/Updates, Oculus, locale `es-ES`, renombrado interno (Nivel 2) y port a Rust de las piezas del helper más estables.
 
+### Fase 10 — Sensores de hardware (pendiente de diseño)
+- Recuperar la temperatura de CPU y otros sensores, probablemente con LibreHardwareMonitor (revisar antes su licencia, MPL-2.0, y cómo carga su driver). Partir del código conservado tras el feature `hardware-sensors` o sustituir PawnIO.
+- Siempre opcional y con instalación explícita del usuario; nunca en el build por defecto hasta tener la firma de código de la Fase 11.
+
+### Fase 11 — Distribución
+- **Firma de código** de todos los ejecutables que se publiquen (`Disco.exe`, instalador NSIS, helper .NET y, si existe, el helper privilegiado), por ejemplo con **SignPath Foundation** (firma gratuita para proyectos open source, con compilación en CI verificable). `build-privileged.mjs` ya exige Authenticode válido en release; extender la misma comprobación al resto.
+- Empaquetado del runtime .NET 10 del helper (dependiente del runtime o autocontenido).
+- Decidir si Disco tendrá servidor de actualizaciones propio (clave y endpoints nuevos; nunca los de MangoDisk).
+- Enviar los binarios firmados a los fabricantes de antivirus (Bitdefender, Microsoft Defender) si siguen apareciendo falsos positivos.
+
 ## 9. Riesgos y decisiones pendientes
 
-- **Runtime .NET** (decidido: **.NET 10, dependiente del runtime** por ahora; el empaquetado se decide en la fase de distribución). Motivo: todos los proyectos de BCU (`UninstallTools`, `KlocTools`, `ObjectListView`, helpers) heredan `net8.0-windows10.0.18362.0` de `source/Directory.Build.props`; ninguno es .NET Framework 4.x (eso era la rama `legacy-4.x`). En una copia aparte, `UninstallTools` compila con `net10.0-windows10.0.18362.0` sin errores, mientras que con `net48` ni siquiera pasan sus dependencias (`IsExternalInit`, `GeneratedRegex`, `Rune`, diseñadores WinForms) y después vendrían WinRT (`Windows.Management.Deployment`), `System.Text.Json`, `DistinctBy`, `Enum.GetValues<T>`… Usar 4.8 obligaría a mantener un fork retroportado de BCU. En la Fase 0 se encontró una única incompatibilidad en tiempo de ejecución con .NET 10 (Windows Features vacías por una enumeración WMI no rebobinable), corregible con un parche de una línea.
+- **Runtime .NET** (decidido: **.NET 10, dependiente del runtime** por ahora; el empaquetado se decide en la fase de distribución, Fase 11). Motivo: todos los proyectos de BCU (`UninstallTools`, `KlocTools`, `ObjectListView`, helpers) heredan `net8.0-windows10.0.18362.0` de `source/Directory.Build.props`; ninguno es .NET Framework 4.x (eso era la rama `legacy-4.x`). En una copia aparte, `UninstallTools` compila con `net10.0-windows10.0.18362.0` sin errores, mientras que con `net48` ni siquiera pasan sus dependencias (`IsExternalInit`, `GeneratedRegex`, `Rune`, diseñadores WinForms) y después vendrían WinRT (`Windows.Management.Deployment`), `System.Text.Json`, `DistinctBy`, `Enum.GetValues<T>`… Usar 4.8 obligaría a mantener un fork retroportado de BCU. En la Fase 0 se encontró una única incompatibilidad en tiempo de ejecución con .NET 10 (Windows Features vacías por una enumeración WMI no rebobinable), corregible con un parche de una línea.
 - **Identificador**: `io.github.nikporras.disco` (decidido). Pendiente: si habrá servidor de actualizaciones propio.
 - **Parches a BCU**: si hace falta cambiar `UninstallTools` (p. ej. quitar diálogos), mantenerlos mínimos, marcados y, si es posible, enviarlos *upstream*.
 - **Pruebas destructivas** solo en VM o *Windows Sandbox*, nunca en el equipo de desarrollo, y solo con programas de prueba propios (S3).

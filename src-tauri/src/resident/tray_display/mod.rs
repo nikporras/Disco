@@ -488,10 +488,7 @@ fn render(
     #[cfg(not(windows))]
     let all_desired = format::desired(preferences);
     #[cfg(windows)]
-    let desired = format::windows_desired(
-        preferences,
-        super::taskbar_display::update(app, preferences, &entries, &labels.locale),
-    );
+    let desired = format::desired(preferences);
     #[cfg(not(windows))]
     let desired = if !all_desired.is_empty() {
         vec![DisplayId::App]

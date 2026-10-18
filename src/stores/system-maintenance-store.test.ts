@@ -80,6 +80,19 @@ describe('system maintenance store', () => {
     expect(store.catalog?.items).toHaveLength(2);
   });
 
+  it('never starts an elevated task on its own after scanning recommended items', async () => {
+    vi.spyOn(SystemMaintenanceService, 'scan').mockResolvedValue(
+      catalog([{ ...recommendedItem, requiresElevation: true }])
+    );
+    const execute = vi.spyOn(SystemMaintenanceService, 'execute');
+    const store = useSystemMaintenanceStore();
+
+    await store.scan();
+
+    expect(store.catalog?.items).toHaveLength(1);
+    expect(execute).not.toHaveBeenCalled();
+  });
+
   it('leaves the loading state after a failed scan and recovers on retry', async () => {
     const scan = vi
       .spyOn(SystemMaintenanceService, 'scan')

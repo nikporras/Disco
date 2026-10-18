@@ -132,6 +132,10 @@ pub enum PrivacyDataKind {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PrivacyScanRequest {
     pub time_range: PrivacyTimeRange,
+    /// Browser databases (history, cookies, saved-password and autofill stores) are opened only
+    /// after an explicit opt-in for this scan. Omitted or false skips every browser source.
+    #[serde(default)]
+    pub include_browsers: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]

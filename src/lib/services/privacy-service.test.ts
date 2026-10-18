@@ -21,8 +21,10 @@ describe('PrivacyService', () => {
   it('uses the stable scan and cancellation commands', async () => {
     invokeMock.mockResolvedValue(undefined);
 
-    await PrivacyService.scan({ timeRange: 'today' });
-    expect(invokeMock).toHaveBeenLastCalledWith('scan_privacy', { request: { timeRange: 'today' } });
+    await PrivacyService.scan({ timeRange: 'today', includeBrowsers: false });
+    expect(invokeMock).toHaveBeenLastCalledWith('scan_privacy', {
+      request: { timeRange: 'today', includeBrowsers: false },
+    });
 
     await PrivacyService.cancelScan();
     expect(invokeMock).toHaveBeenLastCalledWith('cancel_privacy_scan');
@@ -49,7 +51,7 @@ describe('PrivacyService', () => {
     );
     invokeMock.mockResolvedValue({ scanId: 'scan' });
 
-    await PrivacyService.scanWithProgress({ timeRange: 'allTime' }, handler);
+    await PrivacyService.scanWithProgress({ timeRange: 'allTime', includeBrowsers: true }, handler);
 
     expect(listenMock).toHaveBeenCalledWith('privacy-scan-progress', expect.any(Function));
     expect(handler).toHaveBeenCalledWith(progress);

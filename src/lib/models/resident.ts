@@ -21,6 +21,7 @@ export interface ResidentPreferences {
   revision: number;
   enabled: boolean;
   showIcon: boolean;
+  // Retained for the stored preference schema; Disco has no in-taskbar display.
   taskbarPosition: 'auto' | 'left' | 'right';
   taskbarBackground: boolean;
   taskbarCompact: boolean;
@@ -44,5 +45,3 @@ export interface MemoryReleaseResult {
 }
 
 export type ApplicationQuitStatus = 'requested' | 'unavailable' | 'unsupported';
-
-export type ResidentDisplayStatus = 'tray' | 'taskbar' | 'noSpace' | 'unsupportedLayout' | 'shellUnavailable';

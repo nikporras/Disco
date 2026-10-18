@@ -4,9 +4,9 @@ mod commands;
 mod events;
 mod resident;
 mod runtime_diagnostics;
-#[cfg(windows)]
-pub use resident::taskbar_display::run_layout_helper_mode;
 mod services;
+#[cfg(test)]
+mod surface_tests;
 #[cfg(any(windows, test))]
 mod webview_recovery;
 mod webview_runtime;
@@ -205,7 +205,6 @@ pub fn run() {
             commands::windows_monitoring::windows_monitoring_observe,
             commands::windows_monitoring::windows_monitoring_install,
             commands::windows_monitoring::windows_monitoring_uninstall,
-            commands::resident::resident_get_display_status,
             commands::resident::resident_get_catalogue,
             commands::resident::resident_get_panel_metric,
             commands::resident::resident_select_metric,

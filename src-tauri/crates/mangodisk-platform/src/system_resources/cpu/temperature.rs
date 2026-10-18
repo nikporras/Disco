@@ -6,7 +6,9 @@ use serde::Serialize;
 mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
-#[cfg(windows)]
+// Windows readings come from the PawnIO-backed privileged service, which ships
+// only with the `hardware-sensors` feature.
+#[cfg(all(windows, feature = "hardware-sensors"))]
 mod windows;
 
 pub const TEMPERATURE_INTERVAL_MS: u64 = 4_000;
@@ -43,7 +45,7 @@ pub struct CpuTemperature {
 }
 
 pub struct CpuTemperatureReader {
-    #[cfg(windows)]
+    #[cfg(all(windows, feature = "hardware-sensors"))]
     reader: windows::Reader,
     #[cfg(target_os = "macos")]
     reader: macos::Reader,
@@ -62,12 +64,16 @@ impl CpuTemperatureReader {
                 reader: linux::Reader::new()?,
             })
         }
-        #[cfg(windows)]
+        #[cfg(all(windows, feature = "hardware-sensors"))]
         {
             let _ = model;
             windows::Reader::new().map(|reader| Self { reader })
         }
-        #[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
+        #[cfg(not(any(
+            all(windows, feature = "hardware-sensors"),
+            target_os = "macos",
+            target_os = "linux"
+        )))]
         {
             let _ = model;
             Err(unsupported())
@@ -75,9 +81,17 @@ impl CpuTemperatureReader {
     }
 
     pub fn read(&mut self) -> PlatformResult<CpuTemperature> {
-        #[cfg(any(windows, target_os = "macos", target_os = "linux"))]
+        #[cfg(any(
+            all(windows, feature = "hardware-sensors"),
+            target_os = "macos",
+            target_os = "linux"
+        ))]
         return self.reader.read();
-        #[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
+        #[cfg(not(any(
+            all(windows, feature = "hardware-sensors"),
+            target_os = "macos",
+            target_os = "linux"
+        )))]
         Err(unsupported())
     }
 }

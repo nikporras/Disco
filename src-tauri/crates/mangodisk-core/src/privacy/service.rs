@@ -205,12 +205,22 @@ impl PrivacyService {
         let mut coverage = Vec::new();
         #[cfg(windows)]
         let mut browser_application_paths = BTreeMap::new();
-        let total_sources = (discovery.browsers.len()
-            + discovery.applications.len()
-            + discovery.system_traces.len()) as u64;
+        // Browser stores stay untouched unless this scan explicitly opted in. Without browser
+        // items no token, detail page or execution plan can reference browser data.
+        let browsers = if request.include_browsers {
+            discovery.browsers
+        } else {
+            log::info!(
+                "privacy_browser_sources_skipped operation_id={} reason=not_requested",
+                operation.id()
+            );
+            Vec::new()
+        };
+        let total_sources =
+            (browsers.len() + discovery.applications.len() + discovery.system_traces.len()) as u64;
         let mut completed_sources = 0_u64;
 
-        for browser in discovery.browsers {
+        for browser in browsers {
             progress(PrivacyScanProgress {
                 stage: PrivacyScanStage::Browser,
                 source_name: Some(browser.display_name.clone()),
@@ -5125,6 +5135,43 @@ mod tests {
     }
 
     #[test]
+    fn scan_requests_exclude_browsers_unless_explicitly_requested() {
+        let request: PrivacyScanRequest =
+            serde_json::from_value(serde_json::json!({ "timeRange": "allTime" })).unwrap();
+        assert!(!request.include_browsers);
+        let request: PrivacyScanRequest = serde_json::from_value(
+            serde_json::json!({ "timeRange": "today", "includeBrowsers": true }),
+        )
+        .unwrap();
+        assert!(request.include_browsers);
+    }
+
+    #[test]
+    #[ignore = "reads the host application and system privacy source metadata"]
+    fn default_privacy_scan_never_inspects_browser_sources() {
+        let _test_guard = test_operation_lock();
+        let progress = Mutex::new(Vec::new());
+        let result = PrivacyService::scan_with_progress(
+            PrivacyScanRequest {
+                time_range: PrivacyTimeRange::AllTime,
+                include_browsers: false,
+            },
+            |value| progress.lock().unwrap().push(value),
+        )
+        .expect("host privacy scan must complete");
+        assert!(!progress
+            .into_inner()
+            .unwrap()
+            .iter()
+            .any(|value| value.stage == PrivacyScanStage::Browser));
+        assert!(!result.items.iter().any(|item| matches!(
+            item.category,
+            PrivacyCategory::BrowserActivity | PrivacyCategory::BrowserAccountState
+        )));
+        clear_scan_session().unwrap();
+    }
+
+    #[test]
     #[ignore = "reads the host browser and system privacy source metadata"]
     fn actual_privacy_scan_exposes_only_aggregate_evidence() {
         let _test_guard = test_operation_lock();
@@ -5132,6 +5179,7 @@ mod tests {
         let result = PrivacyService::scan_with_progress(
             PrivacyScanRequest {
                 time_range: PrivacyTimeRange::AllTime,
+                include_browsers: true,
             },
             |value| progress.lock().unwrap().push(value),
         )
@@ -5254,6 +5302,7 @@ mod tests {
         let _test_guard = test_operation_lock();
         let result = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("Microsoft Edge privacy scan must complete");
         let edge_items = result
@@ -5283,6 +5332,7 @@ mod tests {
         let _test_guard = test_operation_lock();
         let result = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("additional Chromium privacy scans must complete");
 
@@ -5313,6 +5363,7 @@ mod tests {
         let _test_guard = test_operation_lock();
         let result = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("Windows browser privacy scans must complete");
 
@@ -5354,6 +5405,7 @@ mod tests {
         let _test_guard = test_operation_lock();
         let result = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("Windows Chrome privacy scan must complete");
         let cookies = result
@@ -5396,6 +5448,7 @@ mod tests {
         ];
         let scan = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("running Windows browser scan must complete");
         let tokens = source_ids
@@ -5442,6 +5495,7 @@ mod tests {
 
         let rescanned = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("closed Windows browser rescan must complete");
         for source_id in source_ids {
@@ -5463,6 +5517,7 @@ mod tests {
         let _test_guard = test_operation_lock();
         let result = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("running browser privacy scan must complete");
         let running_source_ids = result
@@ -5507,6 +5562,7 @@ mod tests {
         let _test_guard = test_operation_lock();
         let result = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("host privacy scan must complete");
         let personal_items = result
@@ -5546,6 +5602,7 @@ mod tests {
         let _test_guard = test_operation_lock();
         let scan = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("host privacy scan must complete");
         let populated = scan
@@ -5614,6 +5671,7 @@ mod tests {
         let _test_guard = test_operation_lock();
         let scan = PrivacyService::scan(PrivacyScanRequest {
             time_range: PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
         .expect("host privacy scan must complete");
         let clipboard = scan

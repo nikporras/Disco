@@ -181,6 +181,31 @@ describe('privacy store', () => {
     expect(store.executionStartedAtMs).toBeNull();
   });
 
+  it('excludes browsers by default and scans them only after an explicit opt-in', async () => {
+    serviceMocks.scanWithProgress.mockResolvedValue(structuredClone(scanResult));
+    const store = usePrivacyStore();
+    expect(store.includeBrowsers).toBe(false);
+
+    await store.scan();
+    expect(serviceMocks.scanWithProgress).toHaveBeenLastCalledWith(
+      { timeRange: 'allTime', includeBrowsers: false },
+      expect.any(Function)
+    );
+
+    store.selectedTokens = ['recommended'];
+    store.plan = structuredClone(plan);
+    store.setIncludeBrowsers(true);
+    expect(store.scanResult).toBeNull();
+    expect(store.selectedTokens).toEqual([]);
+    expect(store.plan).toBeNull();
+
+    await store.scan();
+    expect(serviceMocks.scanWithProgress).toHaveBeenLastCalledWith(
+      { timeRange: 'allTime', includeBrowsers: true },
+      expect.any(Function)
+    );
+  });
+
   it('invalidates old results on range changes and forwards active cancellation', async () => {
     const store = usePrivacyStore();
     store.scanResult = structuredClone(scanResult);

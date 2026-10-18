@@ -17,6 +17,7 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 - Cada fase en su propia rama `fase-N-<tema>` desde `main`; commit al terminar con un resumen de qué probar. No integrar en `main` sin aprobación.
 - Helper .NET: **.NET 10**, dependiente del runtime (empaquetado pendiente de la fase de distribución).
 - No hacer `push` sin que el usuario lo pida.
+- Superficie mínima (Fase 0b): nada de inyectar código en otros procesos (Explorer incluido); PawnIO y el servicio privilegiado solo con el feature `hardware-sensors`; arranque automático y PowerShell elevado solo por acción explícita del usuario; navegadores fuera del escaneo de privacidad salvo que el usuario lo active. `src-tauri/src/surface_tests.rs` lo vigila.
 
 ## Comandos
 
@@ -33,6 +34,8 @@ pnpm rust:test                     # Core + proceso privilegiado
 pnpm cli:build                     # CLI en release
 pnpm tauri build                   # instalador NSIS (ejecuta pnpm build antes)
 ```
+
+Sensores de hardware (PawnIO, desactivados por defecto): `DISCO_HARDWARE_SENSORS=1` para que `scripts/build-privileged.mjs` compile el helper, y `--features hardware-sensors` en el build de la app.
 
 BCU (fuente de referencia, no se modifica). `dotnet build` falla por la referencia COM de `UninstallTools`; usa el MSBuild de Visual Studio:
 

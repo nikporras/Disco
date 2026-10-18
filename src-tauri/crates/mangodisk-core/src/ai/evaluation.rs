@@ -45,7 +45,8 @@ fn capture_ai_evaluation_catalogs() {
     capture!(
         "privacy",
         crate::PrivacyService::scan(crate::PrivacyScanRequest {
-            time_range: crate::privacy::PrivacyTimeRange::AllTime
+            time_range: crate::privacy::PrivacyTimeRange::AllTime,
+            include_browsers: true,
         })
     );
     capture!(

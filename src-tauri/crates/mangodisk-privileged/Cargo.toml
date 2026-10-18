@@ -5,9 +5,20 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+# The helper binary embeds the PawnIO driver installer and modules. It is built only
+# with this feature so default workspace builds carry no vendor driver bytes.
+hardware-sensors = []
+
 [[bin]]
 name = "MangoDiskPrivileged"
 path = "src/main.rs"
+required-features = ["hardware-sensors"]
+
+[[test]]
+name = "setup_cli"
+path = "tests/setup_cli.rs"
+required-features = ["hardware-sensors"]
 
 [dependencies]
 mangodisk-privileged-protocol = { path = "../mangodisk-privileged-protocol" }

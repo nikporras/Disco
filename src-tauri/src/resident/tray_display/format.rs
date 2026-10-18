@@ -172,22 +172,6 @@ pub fn desired(preferences: &ResidentPreferences) -> Vec<DisplayId> {
         .collect()
 }
 
-#[cfg(any(windows, test))]
-pub fn windows_desired(preferences: &ResidentPreferences, taskbar_active: bool) -> Vec<DisplayId> {
-    if !preferences.enabled {
-        return Vec::new();
-    }
-    if taskbar_active {
-        if preferences.effective_icon() {
-            vec![DisplayId::App]
-        } else {
-            Vec::new()
-        }
-    } else {
-        desired(preferences)
-    }
-}
-
 pub fn compact_rate(bytes: f64, base: f64) -> (String, &'static str) {
     if !bytes.is_finite() || bytes < 0.0 {
         return ("—".into(), "");
@@ -1408,27 +1392,6 @@ mod tests {
         }
     }
 
-    #[test]
-    fn taskbar_fallback_restores_all_metrics_and_never_loses_the_last_entry() {
-        for bits in 0..(1 << ResidentPreferences::default().metrics.len()) {
-            for show_icon in [false, true] {
-                let mut prefs = ResidentPreferences {
-                    show_icon,
-                    ..Default::default()
-                };
-                for (i, item) in prefs.metrics.iter_mut().enumerate() {
-                    item.enabled = bits & (1 << i) != 0;
-                }
-                assert_eq!(windows_desired(&prefs, false), desired(&prefs));
-                let active = windows_desired(&prefs, true);
-                assert_eq!(active.contains(&DisplayId::App), prefs.effective_icon());
-                assert!(active.len() <= 1);
-                prefs.enabled = false;
-                assert!(windows_desired(&prefs, true).is_empty());
-                assert!(windows_desired(&prefs, false).is_empty());
-            }
-        }
-    }
     #[test]
     fn native_ids_are_stable_and_network_contributes_two_entries() {
         let mut prefs = ResidentPreferences::default();

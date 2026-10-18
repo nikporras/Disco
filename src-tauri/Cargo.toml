@@ -13,9 +13,15 @@ crate-type = ["cdylib", "rlib", "staticlib"]
 [features]
 default = []
 portable = []
+# Optional Windows CPU temperature through the PawnIO driver and privileged service.
+# Off by default; enabling it also requires DISCO_HARDWARE_SENSORS=1 for the helper build.
+hardware-sensors = [
+  "dep:mangodisk-privileged",
+  "dep:mangodisk-privileged-protocol",
+  "mangodisk-platform/hardware-sensors",
+]
 
 [build-dependencies]
-cc = "1.6.0"
 tauri-build = { version = "2.7.1", features = [] }
 
 [dependencies]
@@ -61,8 +67,8 @@ windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Secur
 
 [target.'cfg(target_os = "windows")'.dependencies.windows]
 version = "0.62.2"
-features = ["Win32_Foundation", "Win32_System_Com", "Win32_UI_Accessibility", "Win32_Graphics_Gdi", "Win32_Graphics_Direct2D", "Win32_Graphics_Direct2D_Common", "Win32_Graphics_DirectWrite", "Win32_Graphics_Dxgi_Common"]
+features = ["Win32_Foundation", "Win32_System_Com", "Win32_UI_Accessibility", "Win32_Graphics_Gdi"]
 
 [target.'cfg(windows)'.dependencies]
-mangodisk-privileged = { path = "crates/mangodisk-privileged" }
-mangodisk-privileged-protocol = { path = "crates/mangodisk-privileged-protocol" }
+mangodisk-privileged = { path = "crates/mangodisk-privileged", optional = true }
+mangodisk-privileged-protocol = { path = "crates/mangodisk-privileged-protocol", optional = true }

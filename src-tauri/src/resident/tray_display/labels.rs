@@ -13,7 +13,7 @@ impl Labels {
         Self::new(NativeLabels::load(app))
     }
 
-    #[cfg(any(target_os = "windows", test))]
+    #[cfg(test)]
     pub fn for_locale(locale: &str) -> Self {
         Self::new(NativeLabels::for_locale(locale))
     }

@@ -13,11 +13,9 @@ import { Dialog, DialogTitle } from '@/components/ui/dialog';
 import MdDialogContent from '@/components/custom/md-dialog-content.vue';
 import MdDialogHeader from '@/components/custom/md-dialog-header.vue';
 import MdDialogFooter from '@/components/custom/md-dialog-footer.vue';
-import MdWindowsDisplayFeedback from './md-windows-display-feedback.vue';
 import MdWindowsTemperatureSetup from './md-windows-temperature-setup.vue';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { SelectTrigger } from 'reka-ui';
-import MdTaskbarPosition from './md-taskbar-position.vue';
 import MdStatusAppearance from './md-status-appearance.vue';
 import MdFanDisplaySettings from './md-fan-display-settings.vue';
 import MdStatusColorRuleEditor from './md-status-color-rule-editor.vue';
@@ -577,11 +575,6 @@ onBeforeUnmount(() => {
         @update:model-value="setDisplayEnabled"
       />
     </MdSettingsRow>
-    <MdWindowsDisplayFeedback
-      v-if="!isMacOs && !isLinux && settings.preferences"
-      class="display-feedback"
-      :preferences="settings.preferences"
-    />
     <p v-if="settings.error && !settingsOpen" class="settings-feedback display-feedback" role="status">
       {{ t('systemStatus.saveFailed') }}
       <button @click="settings.load()">{{ t('monitoring.refresh') }}</button>
@@ -609,11 +602,6 @@ onBeforeUnmount(() => {
             :inert="settings.loading"
             :aria-busy="settings.loading"
           >
-            <MdTaskbarPosition
-              v-if="!isMacOs && !isLinux && settings.draft"
-              :preferences="settings.draft"
-              @position="settings.change({ taskbarPosition: $event })"
-            />
             <MdStatusAppearance
               v-if="settings.draft"
               :preferences="settings.draft"

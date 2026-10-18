@@ -29,6 +29,7 @@ interface PrivacyState {
   browserStatusResult: PrivacyBrowserStatusResult | null;
   selectedTokens: string[];
   timeRange: PrivacyTimeRange;
+  includeBrowsers: boolean;
   scanning: boolean;
   cancellingScan: boolean;
   preparing: boolean;
@@ -53,6 +54,8 @@ export const usePrivacyStore = defineStore('privacy', {
     browserStatusResult: null,
     selectedTokens: [],
     timeRange: 'allTime',
+    // Browser stores are opt-in for every app session.
+    includeBrowsers: false,
     scanning: false,
     cancellingScan: false,
     preparing: false,
@@ -88,7 +91,8 @@ export const usePrivacyStore = defineStore('privacy', {
       const startedAt = performance.now();
       LoggerService.info(LOG_DOMAINS.privacy, LOG_EVENTS.privacyScanRequested, { timeRange: this.timeRange });
       try {
-        this.scanResult = await PrivacyService.scanWithProgress({ timeRange: this.timeRange }, progress => {
+        const request = { timeRange: this.timeRange, includeBrowsers: this.includeBrowsers };
+        this.scanResult = await PrivacyService.scanWithProgress(request, progress => {
           this.scanProgress = progress;
         });
         this.selectedTokens = initialPrivacySelection(this.scanResult.items);
@@ -118,6 +122,27 @@ export const usePrivacyStore = defineStore('privacy', {
         useAppStore().reportError(error);
         this.cancellingScan = false;
       }
+    },
+    setIncludeBrowsers(value: boolean) {
+      if (
+        this.scanning ||
+        this.preparing ||
+        this.closingBrowsers ||
+        this.refreshingBrowserStatus ||
+        this.executing ||
+        value === this.includeBrowsers
+      )
+        return;
+      this.includeBrowsers = value;
+      // A result scanned with the other scope must not stay actionable.
+      this.scanResult = null;
+      this.selectedTokens = [];
+      this.plan = null;
+      this.completedPlan = null;
+      this.result = null;
+      this.closeResult = null;
+      this.browserStatusResult = null;
+      this.browserStatusRefreshFailed = false;
     },
     setTimeRange(value: PrivacyTimeRange) {
       if (

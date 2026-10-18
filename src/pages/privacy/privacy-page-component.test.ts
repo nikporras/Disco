@@ -137,6 +137,13 @@ function mountPage() {
           template: '<button class="prepare-cleanup" type="button" @click="$emit(\'action\')">prepare</button>',
         },
         MdSelectionMode: true,
+        MdTooltip: true,
+        MdSwitch: {
+          props: ['modelValue'],
+          emits: ['update:modelValue'],
+          template:
+            '<input type="checkbox" class="include-browsers-switch" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+        },
         Select: passthroughStub,
         SelectContent: passthroughStub,
         SelectItem: passthroughStub,
@@ -162,6 +169,18 @@ describe('privacy page cleanup flow', () => {
 
     expect(scanButton.attributes('size')).toBe('lg');
     expect(scanButton.attributes('type')).toBe('button');
+    wrapper.unmount();
+  });
+
+  it('keeps browsers out of the scan until the user turns them on', async () => {
+    const store = usePrivacyStore();
+    const wrapper = mountPage();
+    const toggle = wrapper.get<HTMLInputElement>('.include-browsers-switch');
+
+    expect(toggle.element.checked).toBe(false);
+    expect(store.includeBrowsers).toBe(false);
+    await toggle.setValue(true);
+    expect(store.includeBrowsers).toBe(true);
     wrapper.unmount();
   });
 

@@ -166,13 +166,6 @@ pub async fn monitoring_quit_application(
 }
 
 #[tauri::command]
-pub fn resident_get_display_status(
-    app: tauri::AppHandle,
-) -> resident::taskbar_display::DisplayStatus {
-    resident::taskbar_display::status(&app)
-}
-
-#[tauri::command]
 pub fn memory_release_preferences(
     app: tauri::AppHandle,
 ) -> CommandResult<mangodisk_core::system_resources::release_policy::ReleasePreferences> {
