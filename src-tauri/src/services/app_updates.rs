@@ -15,6 +15,11 @@ const START_DELAY: Duration = Duration::from_secs(3);
 const POLL: Duration = Duration::from_secs(30);
 const TIMEOUT: Duration = Duration::from_secs(15);
 const EVENT: &str = "app-update-notice";
+/// Disco has no release channel yet. The upstream MangoDisk endpoint and signing key were removed
+/// from the updater configuration, and discovery stays off so this fork can never download or
+/// install a MangoDisk release. Enable only together with Disco-owned endpoints and keys.
+const UPDATE_DISCOVERY_ENABLED: bool = false;
+const UPDATE_CHANNEL_UNAVAILABLE: &str = "app_updates_unavailable";
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -186,6 +191,12 @@ impl AppUpdates {
     }
 
     pub(crate) async fn check(&self, app: &tauri::AppHandle, source: CheckSource) -> CheckResult {
+        if !UPDATE_DISCOVERY_ENABLED {
+            log::info!(
+                "app_update_check_skipped source={source:?} reason={UPDATE_CHANNEL_UNAVAILABLE}"
+            );
+            return Err(UPDATE_CHANNEL_UNAVAILABLE.into());
+        }
         let (update, notice) = self
             .check_with(source, || async {
                 match tokio::time::timeout(TIMEOUT + Duration::from_secs(5), discover(app)).await {
@@ -266,6 +277,10 @@ fn valid_system_locale(locale: String) -> Option<String> {
 pub(crate) fn start(app: &tauri::AppHandle) {
     let state = Arc::new(AppUpdates::new(SystemTime::now()));
     app.manage(state.clone());
+    if !UPDATE_DISCOVERY_ENABLED {
+        log::info!("app_update_scheduler_disabled reason={UPDATE_CHANNEL_UNAVAILABLE}");
+        return;
+    }
     let app = app.clone();
     log::info!(
         "app_update_scheduler_started initial_delay_secs={} interval_secs={}",
@@ -289,6 +304,16 @@ pub(crate) fn start(app: &tauri::AppHandle) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn updater_configuration_has_no_upstream_release_channel() {
+        let config: serde_json::Value =
+            serde_json::from_str(include_str!("../../tauri.conf.json")).unwrap();
+        let updater = &config["plugins"]["updater"];
+        assert_eq!(updater["endpoints"], serde_json::json!([]));
+        assert_eq!(updater["pubkey"], "");
+        assert_eq!(config["bundle"]["createUpdaterArtifacts"], false);
+    }
 
     #[test]
     fn preserves_unsupported_ui_languages_in_system_locale_telemetry() {

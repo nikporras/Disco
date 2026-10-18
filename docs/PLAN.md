@@ -202,13 +202,23 @@ Flujo de trabajo: cada fase en su propia rama (`fase-N-<tema>`, creada desde `ma
 - Comprobar que `UninstallTools` compila **y funciona** con **.NET 10**.
 - **Prueba**: `pnpm check`; la app arranca y no hace ninguna petición a `mangodisk.app`.
 
+**Resultados (18-oct-2026, Windows 11 Pro x64, equipo de desarrollo):**
+
+- `main` sin cambios pasa `pnpm check`: 215 archivos / 1.840 tests de frontend y 896 tests de Rust correctos.
+- Todos los ejecutables de BCU llevan `requireAdministrator` en `source/app.manifest`: sin UAC no arrancan ("The requested operation requires elevation"). El helper de Disco debe usar su propio manifiesto `asInvoker` y elevarse solo a través del broker (Fase 6).
+- `BCU-console list --format=json` (compilado con manifiesto `asInvoker`, solo lectura): .NET 8 → 1.115 apps en ~57 s; .NET 10 → 1.098 apps en ~65 s. La diferencia son exactamente las 17 *Windows Features*.
+- Causa: `KlocTools/IO/WmiQueries.cs` usa `EnumerationOptions` con `Rewindable = false` y luego `Cast<ManagementObject>().ToList()`. En .NET 10, LINQ lee antes `Count`, que consume la enumeración no rebobinable, y la lista queda vacía (comprobado con un programa mínimo: 0 resultados en .NET 10 y 136 en .NET 8; con `Rewindable = true`, 136 en ambos). Las demás consultas WMI de BCU usan opciones por defecto (rebobinables) y no están afectadas.
+- Conclusión: **.NET 10 es viable con un parche de una línea** (`Rewindable = true`) en la copia fijada de BCU, documentado y propuesto *upstream*.
+- Compilar BCU requiere el MSBuild de Visual Studio (referencia COM `Scripting`); `dotnet build` falla con `MSB4803`.
+
 ### Fase 1 — Renombrado visible a Disco
 - Nivel 1 del §7 con el identificador `io.github.nikporras.disco` y `check:identity` actualizado (incluye comprobar que no hay endpoints de `mangodisk.app`).
 - Añadir `NOTICE` / `THIRD-PARTY-NOTICES` con MangoDisk (GPL) y BCU (Apache, aunque aún no se use).
 - **Prueba**: `pnpm check:identity`, `pnpm check`, abrir la app y ver "Disco".
 
 ### Fase 2 — Esqueleto del helper .NET (solo lectura)
-- `third_party/bcu` fijado a un commit; proyecto `helpers/disco-bcu-helper` con comando `inventory` y JSON versionado; script `scripts/build-bcu-helper.mjs` que lo compila y copia a `src-tauri/resources/bcu/`.
+- `third_party/bcu` fijado a un commit; proyecto `helpers/disco-bcu-helper` (.NET 10, manifiesto `asInvoker`) con comando `inventory` y JSON versionado; script `scripts/build-bcu-helper.mjs` que lo compila y copia a `src-tauri/resources/bcu/`.
+- Parche mínimo y marcado a BCU: `Rewindable = true` en `WmiQueries.GetWindowsFeatures` (ver resultados de la Fase 0). Test: el inventario incluye Windows Features.
 - **Prueba**: tests del helper (salida válida, sin diálogos, códigos de salida) y ejecución manual.
 
 ### Fase 3 — Cliente Rust e inventario combinado
@@ -241,7 +251,7 @@ Flujo de trabajo: cada fase en su propia rama (`fase-N-<tema>`, creada desde `ma
 
 ## 9. Riesgos y decisiones pendientes
 
-- **Runtime .NET** (decidido: **.NET 10, dependiente del runtime** por ahora; el empaquetado se decide en la fase de distribución). Motivo: todos los proyectos de BCU (`UninstallTools`, `KlocTools`, `ObjectListView`, helpers) heredan `net8.0-windows10.0.18362.0` de `source/Directory.Build.props`; ninguno es .NET Framework 4.x (eso era la rama `legacy-4.x`). En una copia aparte, `UninstallTools` compila con `net10.0-windows10.0.18362.0` sin errores, mientras que con `net48` ni siquiera pasan sus dependencias (`IsExternalInit`, `GeneratedRegex`, `Rune`, diseñadores WinForms) y después vendrían WinRT (`Windows.Management.Deployment`), `System.Text.Json`, `DistinctBy`, `Enum.GetValues<T>`… Usar 4.8 obligaría a mantener un fork retroportado de BCU.
+- **Runtime .NET** (decidido: **.NET 10, dependiente del runtime** por ahora; el empaquetado se decide en la fase de distribución). Motivo: todos los proyectos de BCU (`UninstallTools`, `KlocTools`, `ObjectListView`, helpers) heredan `net8.0-windows10.0.18362.0` de `source/Directory.Build.props`; ninguno es .NET Framework 4.x (eso era la rama `legacy-4.x`). En una copia aparte, `UninstallTools` compila con `net10.0-windows10.0.18362.0` sin errores, mientras que con `net48` ni siquiera pasan sus dependencias (`IsExternalInit`, `GeneratedRegex`, `Rune`, diseñadores WinForms) y después vendrían WinRT (`Windows.Management.Deployment`), `System.Text.Json`, `DistinctBy`, `Enum.GetValues<T>`… Usar 4.8 obligaría a mantener un fork retroportado de BCU. En la Fase 0 se encontró una única incompatibilidad en tiempo de ejecución con .NET 10 (Windows Features vacías por una enumeración WMI no rebobinable), corregible con un parche de una línea.
 - **Identificador**: `io.github.nikporras.disco` (decidido). Pendiente: si habrá servidor de actualizaciones propio.
 - **Parches a BCU**: si hace falta cambiar `UninstallTools` (p. ej. quitar diálogos), mantenerlos mínimos, marcados y, si es posible, enviarlos *upstream*.
 - **Pruebas destructivas** solo en VM o *Windows Sandbox*, nunca en el equipo de desarrollo, y solo con programas de prueba propios (S3).

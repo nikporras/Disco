@@ -39,13 +39,18 @@ pub(super) fn available() -> bool {
     credentials().is_ok() && origin().is_ok()
 }
 
+/// Disco operates no official AI service. The upstream MangoDisk origin is intentionally absent
+/// so signed context and installation metadata can never reach a service this fork does not own.
+const RELEASE_ORIGIN: Option<&str> = None;
+
 fn origin() -> Result<Url, AiError> {
     // A release build cannot redirect signed headers or private context to a debug URL.
     #[cfg(debug_assertions)]
-    let value = option_env!("MANGODISK_AI_LOCAL_ORIGIN").unwrap_or("https://mangodisk.app");
+    let value = option_env!("MANGODISK_AI_LOCAL_ORIGIN").or(RELEASE_ORIGIN);
     #[cfg(not(debug_assertions))]
-    let value = "https://mangodisk.app";
-    let url = Url::parse(value).map_err(|_| AiError::FreeUnavailable)?;
+    let value = RELEASE_ORIGIN;
+    let url =
+        Url::parse(value.ok_or(AiError::FreeUnavailable)?).map_err(|_| AiError::FreeUnavailable)?;
     if url.username() != ""
         || url.password().is_some()
         || url.query().is_some()

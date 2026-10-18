@@ -167,8 +167,10 @@ Missing keys disable only the free service; open-source custom-provider builds
 remain functional. A compiled shared key is an abuse hurdle, not proof of an
 untampered client. Server quotas, replay protection and a global kill switch remain
 necessary. Debug builds alone may set `MANGODISK_AI_LOCAL_ORIGIN` to a loopback
-HTTP origin for local website integration; release builds always use HTTPS on
-`mangodisk.app`. Tests use synthetic keys and deterministic cross-language vectors.
+HTTP origin for local website integration. Disco has no official service, so release
+builds have no origin and the free service is always unavailable; the upstream
+`mangodisk.app` origin must not be restored. Tests use synthetic keys and
+deterministic cross-language vectors.
 
 Configure a base URL ending at the API prefix (commonly `/v1`), a model, and a key.
 Requests use `POST /chat/completions` with `stream: true`. Both HTTP and HTTPS

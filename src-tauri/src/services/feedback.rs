@@ -21,7 +21,9 @@ const MAX_ATTACHMENT_BYTES: usize = 10 * 1024 * 1024;
 const MAX_LOG_FILE_COUNT: usize = 3;
 const FEEDBACK_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 const FEEDBACK_REQUEST_TIMEOUT: Duration = Duration::from_secs(60);
-const PRODUCTION_FEEDBACK_URL: &str = "https://mangodisk.app/api/v1/feedbacks";
+/// Disco has no feedback service. The upstream MangoDisk endpoint is intentionally absent so
+/// messages, attachments, and diagnostic logs are never uploaded to a service this fork does not own.
+const PRODUCTION_FEEDBACK_URL: Option<&str> = None;
 
 #[derive(Debug)]
 pub enum FeedbackError {
@@ -34,6 +36,7 @@ pub enum FeedbackError {
     LogArchive,
     Network,
     ServerRejected,
+    ServiceUnavailable,
 }
 
 impl fmt::Display for FeedbackError {
@@ -48,6 +51,7 @@ impl fmt::Display for FeedbackError {
             Self::LogArchive => "feedback_log_archive_failed",
             Self::Network => "feedback_network_failed",
             Self::ServerRejected => "feedback_server_rejected",
+            Self::ServiceUnavailable => "feedback_service_unavailable",
         })
     }
 }
@@ -260,8 +264,16 @@ impl FeedbackSubmissionService {
         request: SubmitFeedbackRequest,
     ) -> Result<SubmitFeedbackResult, FeedbackError> {
         validate_submission(&request)?;
-        let started_at = Instant::now();
         let request_id = request.request_id.clone();
+        // Fail before staging logs or attachments so nothing is prepared for an absent service.
+        let Some(endpoint) = feedback_endpoint() else {
+            log::warn!(
+                "feedback_submission_unavailable request_id={} reason=no_feedback_service",
+                request_id
+            );
+            return Err(FeedbackError::ServiceUnavailable);
+        };
+        let started_at = Instant::now();
         log::info!(
             "feedback_submission_started request_id={} attachment_count={} include_logs={}",
             request_id,
@@ -337,7 +349,7 @@ impl FeedbackSubmissionService {
             .build()
             .map_err(|_| FeedbackError::Network)?;
         let response = client
-            .post(feedback_endpoint())
+            .post(endpoint)
             .multipart(form)
             .send()
             .await
@@ -520,17 +532,17 @@ fn create_recent_log_archive(
     Ok((Some(archive), written_count))
 }
 
-fn feedback_endpoint() -> String {
+fn feedback_endpoint() -> Option<String> {
     #[cfg(debug_assertions)]
     {
         let override_url = std::env::var("MANGODISK_FEEDBACK_API_URL")
             .ok()
             .or_else(|| option_env!("MANGODISK_FEEDBACK_API_URL").map(str::to_string));
         if let Some(value) = override_url.and_then(|value| loopback_feedback_endpoint(&value)) {
-            return value;
+            return Some(value);
         }
     }
-    PRODUCTION_FEEDBACK_URL.to_string()
+    PRODUCTION_FEEDBACK_URL.map(str::to_string)
 }
 
 #[cfg(debug_assertions)]
