@@ -151,6 +151,7 @@
     "timeRangeLabel": "Temizlenecek dönem",
     "includeBrowsers": "Tarayıcıları dahil et",
     "includeBrowsersHint": "Tarayıcı geçmişi, çerezler ve kayıtlı oturum listeleri yalnızca bu açıkken taranır",
+    "browsersOpenNotice": "{browsers} uygulamasını kapatıp yeniden tarayın. Disco, tarayıcı açıkken tarayıcı verilerini okumaz",
     "toggleItem": "{item} seçimini değiştir",
     "permission": {
       "badge": "Erişim sınırlı",
@@ -163,6 +164,8 @@
       "failed": "Ayrıntılar yüklenemedi",
       "retry": "Tekrar dene",
       "aggregateOnly": "Yalnızca toplam sayı mevcut",
+      "totalsOnly": "Gizlilik için Disco bu verilerin yalnızca toplamını gösterir, içeriğini asla göstermez",
+      "browserRunning": "Ayrıntıları görmek için {browser} uygulamasını kapatın. Disco, tarayıcı açıkken tarayıcı verilerini okumaz",
       "empty": "Görüntülenecek ayrıntı yok",
       "loadMore": "Daha fazla göster",
       "unknown": "Adsız kayıt"

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import type { PrivacyDetailEntry, PrivacyDetailsPage, PrivacyItem } from '@/lib/models/privacy';
 import { PrivacyService } from '@/lib/services/privacy-service';
+import { parseCommandError, parseCommandErrorReason } from '@/lib/utils/error';
 import * as FormatUtils from '@/lib/utils/format';
 
 const props = defineProps<{
@@ -29,7 +30,16 @@ const entries = ref<PrivacyDetailEntry[]>([]);
 const loading = ref(false);
 const loadingMore = ref(false);
 const failed = ref(false);
+const browserRunning = ref(false);
 let loadRevision = 0;
+// Core lists no values for these kinds, not even site or field names.
+const TOTALS_ONLY_KINDS: ReadonlySet<PrivacyItem['kind']> = new Set([
+  'cookies',
+  'savedPasswords',
+  'autofillData',
+  'searchHistory',
+]);
+const totalsOnly = computed(() => Boolean(props.item && TOTALS_ONLY_KINDS.has(props.item.kind)));
 
 const sourceDescription = computed(() => {
   if (!props.item) return '';
@@ -46,6 +56,7 @@ async function load(reset: boolean) {
     page.value = null;
     entries.value = [];
     failed.value = false;
+    browserRunning.value = false;
     loading.value = true;
     loadingMore.value = false;
   } else {
@@ -61,8 +72,11 @@ async function load(reset: boolean) {
     if (revision !== loadRevision) return;
     page.value = result;
     entries.value = reset ? result.entries : [...entries.value, ...result.entries];
-  } catch {
-    if (revision === loadRevision) failed.value = true;
+  } catch (error) {
+    if (revision !== loadRevision) return;
+    // Browser stores are read only while the browser is closed.
+    if (parseCommandErrorReason(parseCommandError(error)) === 'browserRunning') browserRunning.value = true;
+    else failed.value = true;
   } finally {
     if (revision === loadRevision) {
       loading.value = false;
@@ -82,6 +96,7 @@ function clearDetails() {
   loading.value = false;
   loadingMore.value = false;
   failed.value = false;
+  browserRunning.value = false;
 }
 
 function updateOpen(open: boolean) {
@@ -127,8 +142,14 @@ watch(
               {{ t('privacy.details.retry') }}
             </Button>
           </div>
+          <div v-else-if="browserRunning" class="detail-state" role="status">
+            <span>{{ t('privacy.details.browserRunning', { browser: item.sourceName }) }}</span>
+            <Button variant="outline" size="sm" type="button" @click="load(true)">
+              {{ t('privacy.details.retry') }}
+            </Button>
+          </div>
           <div v-else-if="page?.presentation === 'aggregateOnly'" class="detail-state">
-            <span>{{ t('privacy.details.aggregateOnly') }}</span>
+            <span>{{ t(totalsOnly ? 'privacy.details.totalsOnly' : 'privacy.details.aggregateOnly') }}</span>
           </div>
           <div v-else-if="!entries.length" class="detail-state">
             <span>{{ t('privacy.details.empty') }}</span>

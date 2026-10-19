@@ -151,6 +151,7 @@
     "timeRangeLabel": "Período da limpeza",
     "includeBrowsers": "Incluir navegadores",
     "includeBrowsersHint": "Histórico, cookies e listas de logins salvos dos navegadores só são verificados com isto ativado",
+    "browsersOpenNotice": "Feche {browsers} e verifique novamente. O Disco não lê dados do navegador enquanto ele está aberto",
     "toggleItem": "Alternar seleção de {item}",
     "permission": {
       "badge": "Acesso limitado",
@@ -163,6 +164,8 @@
       "failed": "Não foi possível carregar os detalhes",
       "retry": "Tentar novamente",
       "aggregateOnly": "Só é possível exibir a contagem total",
+      "totalsOnly": "Por privacidade, o Disco mostra apenas o total destes dados, nunca o conteúdo",
+      "browserRunning": "Feche {browser} para ver estes detalhes. O Disco não lê dados do navegador enquanto ele está aberto",
       "empty": "Não há detalhes para exibir",
       "loadMore": "Mostrar mais",
       "unknown": "Registro sem nome"

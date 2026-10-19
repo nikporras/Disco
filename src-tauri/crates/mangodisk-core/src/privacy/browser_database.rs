@@ -1,10 +1,8 @@
 use std::{
-    ffi::OsString,
     fs,
     io::Write,
-    path::{Path, PathBuf},
+    path::Path,
     sync::atomic::{AtomicU64, Ordering},
-    time::UNIX_EPOCH,
 };
 
 use mangodisk_platform::PlatformPrivacyBrowserKind;
@@ -16,13 +14,10 @@ use super::{PrivacyDataKind, PrivacyDetailEntry, PrivacyTimeRange};
 
 const CHROMIUM_EPOCH_OFFSET_MS: i64 = 11_644_473_600_000;
 const SAFARI_EPOCH_OFFSET_SECONDS: i64 = 978_307_200;
-const MAX_SNAPSHOT_DATABASE_BYTES: u64 = 1024 * 1024 * 1024;
-const MAX_SNAPSHOT_COMPANION_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_FIREFOX_LOGIN_JSON_BYTES: u64 = 64 * 1024 * 1024;
 const MAX_DETAIL_LABEL_CHARS: usize = 512;
-const SNAPSHOT_ATTEMPTS: usize = 3;
 
-static NEXT_SNAPSHOT: AtomicU64 = AtomicU64::new(1);
+static NEXT_REPLACEMENT: AtomicU64 = AtomicU64::new(1);
 
 pub(super) fn count(
     path: &Path,
@@ -35,17 +30,9 @@ pub(super) fn count(
     if browser == PlatformPrivacyBrowserKind::Firefox && kind == PrivacyDataKind::SavedPasswords {
         return count_firefox_saved_passwords(&database_path, range);
     }
-    match count_at_path(&database_path, browser, kind, range, now_ms, false) {
-        Err(error) if error.reason() == Some(CoreErrorReason::ResourceBusy) => {
-            // Active browsers can hold an exclusive read lock even though the committed database
-            // remains safe to inspect. A short-lived private snapshot lets scanning continue while
-            // keeping every destructive operation gated behind browser shutdown and a fresh scan.
-            log::debug!("privacy_database_snapshot_fallback reason=resource_busy");
-            let snapshot = DatabaseSnapshot::capture(&database_path)?;
-            count_at_path(snapshot.path(), browser, kind, range, now_ms, true)
-        }
-        result => result,
-    }
+    // A locked store means the browser is open. Disco never copies browser databases to read
+    // around that lock; the caller reports BrowserRunning and asks the user to close it.
+    count_at_path(&database_path, browser, kind, range, now_ms).map_err(browser_lock_error)
 }
 
 pub(super) fn details(
@@ -57,41 +44,36 @@ pub(super) fn details(
     offset: u64,
     limit: u32,
 ) -> CoreResult<Vec<PrivacyDetailEntry>> {
-    let database_path = safe_database_path(path)?;
-    if browser == PlatformPrivacyBrowserKind::Firefox && kind == PrivacyDataKind::SavedPasswords {
-        return firefox_saved_password_details(&database_path, offset, limit);
+    if details_are_aggregate_only(kind) {
+        return Err(CoreError::invalid_input(
+            "privacy details for this data kind are aggregate-only",
+        ));
     }
-    match details_at_path(
-        &database_path,
-        browser,
+    let database_path = safe_database_path(path)?;
+    details_at_path(&database_path, browser, kind, range, now_ms, offset, limit)
+        .map_err(browser_lock_error)
+}
+
+/// Cookies, saved passwords, autofill and search terms are never listed, not even by site or
+/// field name: Core reports only their totals so their values are never read for display.
+pub(super) fn details_are_aggregate_only(kind: PrivacyDataKind) -> bool {
+    matches!(
         kind,
-        range,
-        now_ms,
-        offset,
-        limit,
-        false,
-    ) {
-        Err(error) if error.reason() == Some(CoreErrorReason::ResourceBusy) => {
-            // Detail reads use the same private snapshot fallback as aggregate counting. The copy
-            // is deleted before this call returns and no private label is written to diagnostics.
-            log::debug!("privacy_database_detail_snapshot_fallback reason=resource_busy");
-            let snapshot = DatabaseSnapshot::capture(&database_path)?;
-            details_at_path(
-                snapshot.path(),
-                browser,
-                kind,
-                range,
-                now_ms,
-                offset,
-                limit,
-                true,
-            )
-        }
-        result => result,
+        PrivacyDataKind::Cookies
+            | PrivacyDataKind::SavedPasswords
+            | PrivacyDataKind::AutofillData
+            | PrivacyDataKind::SearchHistory
+    )
+}
+
+fn browser_lock_error(error: CoreError) -> CoreError {
+    if error.reason() == Some(CoreErrorReason::ResourceBusy) {
+        error.with_reason(CoreErrorReason::BrowserRunning)
+    } else {
+        error
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 fn details_at_path(
     database_path: &Path,
     browser: PlatformPrivacyBrowserKind,
@@ -100,16 +82,12 @@ fn details_at_path(
     now_ms: u64,
     offset: u64,
     limit: u32,
-    writable_snapshot: bool,
 ) -> CoreResult<Vec<PrivacyDetailEntry>> {
-    let access_flag = if writable_snapshot {
-        OpenFlags::SQLITE_OPEN_READ_WRITE
-    } else {
-        OpenFlags::SQLITE_OPEN_READ_ONLY
-    };
     let connection = Connection::open_with_flags(
         database_path,
-        access_flag | OpenFlags::SQLITE_OPEN_NO_MUTEX | OpenFlags::SQLITE_OPEN_NOFOLLOW,
+        OpenFlags::SQLITE_OPEN_READ_ONLY
+            | OpenFlags::SQLITE_OPEN_NO_MUTEX
+            | OpenFlags::SQLITE_OPEN_NOFOLLOW,
     )
     .map_err(database_error)?;
     connection
@@ -156,26 +134,8 @@ fn detail_query(
         (PlatformPrivacyBrowserKind::Firefox, PrivacyDataKind::DownloadHistory) => {
             "SELECT moz_places.url, COUNT(*) FROM moz_historyvisits JOIN moz_places ON moz_places.id = moz_historyvisits.place_id WHERE moz_historyvisits.visit_type = 7 AND (?1 IS NULL OR moz_historyvisits.visit_date >= ?1) GROUP BY moz_places.url ORDER BY MAX(moz_historyvisits.visit_date) DESC, moz_places.url LIMIT ?2 OFFSET ?3"
         }
-        (PlatformPrivacyBrowserKind::Chromium, PrivacyDataKind::SearchHistory) => {
-            "SELECT keyword_search_terms.term, COUNT(*) FROM keyword_search_terms JOIN urls ON urls.id = keyword_search_terms.url_id WHERE (?1 IS NULL OR urls.last_visit_time >= ?1) GROUP BY keyword_search_terms.term ORDER BY MAX(urls.last_visit_time) DESC, keyword_search_terms.term LIMIT ?2 OFFSET ?3"
-        }
-        (PlatformPrivacyBrowserKind::Chromium, PrivacyDataKind::Cookies) => {
-            "SELECT host_key, COUNT(*) FROM cookies WHERE (?1 IS NULL OR last_access_utc >= ?1) GROUP BY host_key ORDER BY COUNT(*) DESC, host_key LIMIT ?2 OFFSET ?3"
-        }
-        (PlatformPrivacyBrowserKind::Firefox, PrivacyDataKind::Cookies) => {
-            "SELECT host, COUNT(*) FROM moz_cookies WHERE (?1 IS NULL OR lastAccessed >= ?1) GROUP BY host ORDER BY COUNT(*) DESC, host LIMIT ?2 OFFSET ?3"
-        }
         (PlatformPrivacyBrowserKind::Firefox, PrivacyDataKind::SitePermissions) => {
             "SELECT CASE WHEN type IS NULL OR type = '' THEN origin ELSE origin || ' · ' || type END, COUNT(*) FROM moz_perms GROUP BY origin, type ORDER BY origin, type LIMIT ?2 OFFSET ?3"
-        }
-        (PlatformPrivacyBrowserKind::Chromium, PrivacyDataKind::SavedPasswords) => {
-            "SELECT origin_url, COUNT(*) FROM logins GROUP BY origin_url ORDER BY origin_url LIMIT ?2 OFFSET ?3"
-        }
-        (PlatformPrivacyBrowserKind::Chromium, PrivacyDataKind::AutofillData) => {
-            "SELECT name, COUNT(*) FROM autofill GROUP BY name ORDER BY name LIMIT ?2 OFFSET ?3"
-        }
-        (PlatformPrivacyBrowserKind::Firefox, PrivacyDataKind::AutofillData) => {
-            "SELECT fieldname, COUNT(*) FROM moz_formhistory GROUP BY fieldname ORDER BY fieldname LIMIT ?2 OFFSET ?3"
         }
         (PlatformPrivacyBrowserKind::Chromium, PrivacyDataKind::FrequentlyVisitedSites) => {
             "SELECT url, COUNT(*) FROM top_sites GROUP BY url ORDER BY MIN(url_rank), url LIMIT ?2 OFFSET ?3"
@@ -193,44 +153,6 @@ fn detail_query(
         }
     };
     Ok(sql)
-}
-
-fn firefox_saved_password_details(
-    path: &Path,
-    offset: u64,
-    limit: u32,
-) -> CoreResult<Vec<PrivacyDetailEntry>> {
-    let metadata = fs::metadata(path).map_err(snapshot_io_error)?;
-    if metadata.len() > MAX_FIREFOX_LOGIN_JSON_BYTES {
-        return Err(CoreError::operation_failed(
-            "Firefox saved-password source exceeds the scan limit",
-        ));
-    }
-    let document: FirefoxLoginDetailDocument = serde_json::from_reader(
-        fs::File::open(path).map_err(snapshot_io_error)?,
-    )
-    .map_err(|_| CoreError::operation_failed("Firefox saved-password schema is unsupported"))?;
-    let start = usize::try_from(offset).unwrap_or(usize::MAX);
-    Ok(document
-        .logins
-        .into_iter()
-        .skip(start)
-        .take(limit as usize)
-        .map(|login| PrivacyDetailEntry {
-            label: sanitize_detail_label(&login.hostname),
-            item_count: 1,
-        })
-        .collect())
-}
-
-#[derive(serde::Deserialize)]
-struct FirefoxLoginDetailDocument {
-    logins: Vec<FirefoxLoginDetail>,
-}
-
-#[derive(serde::Deserialize)]
-struct FirefoxLoginDetail {
-    hostname: String,
 }
 
 fn sanitize_detail_label(value: &str) -> String {
@@ -254,7 +176,7 @@ fn count_firefox_saved_passwords(path: &Path, range: PrivacyTimeRange) -> CoreRe
             "Firefox saved-password time range is unsupported",
         ));
     }
-    let metadata = fs::metadata(path).map_err(snapshot_io_error)?;
+    let metadata = fs::metadata(path).map_err(source_io_error)?;
     if metadata.len() > MAX_FIREFOX_LOGIN_JSON_BYTES {
         return Err(CoreError::operation_failed(
             "Firefox saved-password source exceeds the scan limit",
@@ -262,10 +184,10 @@ fn count_firefox_saved_passwords(path: &Path, range: PrivacyTimeRange) -> CoreRe
     }
     // Stream the top-level login entries as ignored values so encrypted passwords, hosts, and
     // usernames are never retained by Core, written to logs, or exposed across the protocol.
-    let document: FirefoxLoginDocument = serde_json::from_reader(
-        fs::File::open(path).map_err(snapshot_io_error)?,
-    )
-    .map_err(|_| CoreError::operation_failed("Firefox saved-password schema is unsupported"))?;
+    let document: FirefoxLoginDocument =
+        serde_json::from_reader(fs::File::open(path).map_err(source_io_error)?).map_err(|_| {
+            CoreError::operation_failed("Firefox saved-password schema is unsupported")
+        })?;
     Ok(document.login_count)
 }
 
@@ -313,16 +235,12 @@ fn count_at_path(
     kind: PrivacyDataKind,
     range: PrivacyTimeRange,
     now_ms: u64,
-    writable_snapshot: bool,
 ) -> CoreResult<u64> {
-    let access_flag = if writable_snapshot {
-        OpenFlags::SQLITE_OPEN_READ_WRITE
-    } else {
-        OpenFlags::SQLITE_OPEN_READ_ONLY
-    };
     let connection = Connection::open_with_flags(
         database_path,
-        access_flag | OpenFlags::SQLITE_OPEN_NO_MUTEX | OpenFlags::SQLITE_OPEN_NOFOLLOW,
+        OpenFlags::SQLITE_OPEN_READ_ONLY
+            | OpenFlags::SQLITE_OPEN_NO_MUTEX
+            | OpenFlags::SQLITE_OPEN_NOFOLLOW,
     )
     .map_err(database_error)?;
     // Process detection is advisory and can race a browser startup. Bound read lock waits so an
@@ -652,7 +570,7 @@ fn clear_firefox_saved_passwords(path: &Path, range: PrivacyTimeRange) -> CoreRe
     if before == 0 {
         return Ok(0);
     }
-    let metadata = fs::metadata(path).map_err(snapshot_io_error)?;
+    let metadata = fs::metadata(path).map_err(source_io_error)?;
     if metadata.len() > MAX_FIREFOX_LOGIN_JSON_BYTES {
         return Err(CoreError::operation_failed(
             "Firefox saved-password source exceeds the cleanup limit",
@@ -661,10 +579,10 @@ fn clear_firefox_saved_passwords(path: &Path, range: PrivacyTimeRange) -> CoreRe
     // Firefox keeps encrypted credentials in the `logins` array alongside profile metadata.
     // Replace only that array, preserve every unrelated top-level field, and never log or expose
     // the parsed document. The replacement is synced before an atomic same-directory file swap.
-    let mut document: serde_json::Value = serde_json::from_reader(
-        fs::File::open(path).map_err(snapshot_io_error)?,
-    )
-    .map_err(|_| CoreError::operation_failed("Firefox saved-password schema is unsupported"))?;
+    let mut document: serde_json::Value =
+        serde_json::from_reader(fs::File::open(path).map_err(source_io_error)?).map_err(|_| {
+            CoreError::operation_failed("Firefox saved-password schema is unsupported")
+        })?;
     let logins = document
         .as_object_mut()
         .and_then(|object| object.get_mut("logins"))
@@ -696,7 +614,7 @@ fn write_atomic_replacement(
     let temporary = parent.join(format!(
         ".mangodisk-privacy-{}-{}.tmp",
         std::process::id(),
-        NEXT_SNAPSHOT.fetch_add(1, Ordering::Relaxed)
+        NEXT_REPLACEMENT.fetch_add(1, Ordering::Relaxed)
     ));
     let result = (|| -> std::io::Result<()> {
         let mut file = fs::OpenOptions::new()
@@ -1132,187 +1050,9 @@ fn validate_required_tables(
     Ok(())
 }
 
-/// Owns a sensitive, short-lived copy of a browser database and its WAL.
-///
-/// The snapshot content never crosses the Core protocol or enters logs. Its directory is private
-/// to MangoDisk and removed on every return path. Source metadata is compared before and after
-/// copying so a concurrent checkpoint or write causes a bounded retry instead of producing an
-/// internally inconsistent snapshot.
-struct DatabaseSnapshot {
-    directory: PathBuf,
-    path: PathBuf,
-}
-
-impl DatabaseSnapshot {
-    fn capture(source: &Path) -> CoreResult<Self> {
-        for attempt in 0..SNAPSHOT_ATTEMPTS {
-            let directory = create_snapshot_directory()?;
-            let path = directory.join("database.sqlite");
-            match copy_stable_database(source, &path) {
-                Ok(()) => return Ok(Self { directory, path }),
-                Err(error) if attempt + 1 < SNAPSHOT_ATTEMPTS => {
-                    remove_snapshot_directory(&directory)?;
-                    log::debug!(
-                        "privacy_database_snapshot_retry attempt={} error={}",
-                        attempt + 1,
-                        mangodisk_platform::diagnostics::text(&error)
-                    );
-                }
-                Err(error) => {
-                    remove_snapshot_directory(&directory)?;
-                    return Err(error);
-                }
-            }
-        }
-        Err(CoreError::operation_failed(
-            "privacy database snapshot attempts exhausted",
-        ))
-    }
-
-    fn path(&self) -> &Path {
-        &self.path
-    }
-}
-
-impl Drop for DatabaseSnapshot {
-    fn drop(&mut self) {
-        if let Err(error) = remove_snapshot_directory(&self.directory) {
-            log::warn!("privacy_database_snapshot_cleanup_failed error={error}");
-        }
-    }
-}
-
-fn remove_snapshot_directory(directory: &Path) -> CoreResult<()> {
-    match fs::remove_dir_all(directory) {
-        Ok(()) => Ok(()),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(CoreError::operation_failed(format!(
-            "privacy database snapshot cleanup failed kind={:?}",
-            error.kind()
-        ))),
-    }
-}
-
-fn create_snapshot_directory() -> CoreResult<PathBuf> {
-    // macOS commonly exposes its temporary root through `/var`, which is itself a symlink. SQLite
-    // NOFOLLOW validates every path segment, so canonicalize the system-owned root before creating
-    // the private child directory while still rejecting symlinks for database files themselves.
-    let temporary_root = fs::canonicalize(std::env::temp_dir()).map_err(snapshot_io_error)?;
-    for _ in 0..16 {
-        let nonce = NEXT_SNAPSHOT.fetch_add(1, Ordering::Relaxed);
-        let directory = temporary_root.join(format!(
-            "mangodisk-privacy-scan-{}-{nonce}",
-            std::process::id()
-        ));
-        match create_private_directory(&directory) {
-            Ok(()) => return Ok(directory),
-            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
-            Err(error) => {
-                return Err(CoreError::operation_failed(format!(
-                    "privacy database snapshot directory failed kind={:?}",
-                    error.kind()
-                )))
-            }
-        }
-    }
-    Err(CoreError::operation_failed(
-        "privacy database snapshot directory collision",
-    ))
-}
-
-#[cfg(unix)]
-fn create_private_directory(path: &Path) -> std::io::Result<()> {
-    use std::os::unix::fs::DirBuilderExt;
-
-    let mut builder = fs::DirBuilder::new();
-    builder.mode(0o700).create(path)
-}
-
-#[cfg(not(unix))]
-fn create_private_directory(path: &Path) -> std::io::Result<()> {
-    fs::create_dir(path)
-}
-
-fn copy_stable_database(source: &Path, destination: &Path) -> CoreResult<()> {
-    let wal_source = companion_path(source, "-wal");
-    let before_database = snapshot_file_identity(source, MAX_SNAPSHOT_DATABASE_BYTES)?;
-    let before_wal = optional_snapshot_file_identity(&wal_source, MAX_SNAPSHOT_COMPANION_BYTES)?;
-
-    copy_snapshot_file(source, destination, MAX_SNAPSHOT_DATABASE_BYTES)?;
-    if before_wal.is_some() {
-        copy_snapshot_file(
-            &wal_source,
-            &companion_path(destination, "-wal"),
-            MAX_SNAPSHOT_COMPANION_BYTES,
-        )?;
-    }
-
-    let after_database = snapshot_file_identity(source, MAX_SNAPSHOT_DATABASE_BYTES)?;
-    let after_wal = optional_snapshot_file_identity(&wal_source, MAX_SNAPSHOT_COMPANION_BYTES)?;
-    if before_database != after_database || before_wal != after_wal {
-        return Err(CoreError::operation_failed(
-            "privacy database changed while snapshotting",
-        ));
-    }
-    Ok(())
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct SnapshotFileIdentity {
-    bytes: u64,
-    modified_ns: u128,
-}
-
-fn snapshot_file_identity(path: &Path, max_bytes: u64) -> CoreResult<SnapshotFileIdentity> {
-    let metadata = fs::symlink_metadata(path).map_err(snapshot_io_error)?;
-    if !metadata.is_file() || metadata.file_type().is_symlink() || metadata.len() > max_bytes {
-        return Err(CoreError::operation_failed(
-            "privacy database snapshot source is unsafe",
-        ));
-    }
-    let modified_ns = metadata
-        .modified()
-        .ok()
-        .and_then(|value| value.duration_since(UNIX_EPOCH).ok())
-        .map(|value| value.as_nanos())
-        .unwrap_or(0);
-    Ok(SnapshotFileIdentity {
-        bytes: metadata.len(),
-        modified_ns,
-    })
-}
-
-fn optional_snapshot_file_identity(
-    path: &Path,
-    max_bytes: u64,
-) -> CoreResult<Option<SnapshotFileIdentity>> {
-    match fs::symlink_metadata(path) {
-        Ok(_) => snapshot_file_identity(path, max_bytes).map(Some),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(error) => Err(snapshot_io_error(error)),
-    }
-}
-
-fn copy_snapshot_file(source: &Path, destination: &Path, max_bytes: u64) -> CoreResult<()> {
-    let expected = snapshot_file_identity(source, max_bytes)?.bytes;
-    let copied = fs::copy(source, destination).map_err(snapshot_io_error)?;
-    if copied != expected {
-        return Err(CoreError::operation_failed(
-            "privacy database snapshot copy was incomplete",
-        ));
-    }
-    Ok(())
-}
-
-fn companion_path(path: &Path, suffix: &str) -> PathBuf {
-    let mut value: OsString = path.as_os_str().to_owned();
-    value.push(suffix);
-    PathBuf::from(value)
-}
-
-fn snapshot_io_error(error: std::io::Error) -> CoreError {
+fn source_io_error(error: std::io::Error) -> CoreError {
     CoreError::operation_failed(format!(
-        "privacy database snapshot failed kind={:?}",
+        "privacy source access failed kind={:?}",
         error.kind()
     ))
 }
@@ -1455,8 +1195,8 @@ mod tests {
     }
 
     #[test]
-    fn locked_browser_database_is_counted_from_private_snapshot() {
-        let fixture = DatabaseFixture::new("locked-snapshot");
+    fn locked_browser_database_is_reported_as_browser_running_without_a_copy() {
+        let fixture = DatabaseFixture::new("locked-store");
         let connection = fixture.connection();
         connection
             .execute_batch(
@@ -1466,51 +1206,42 @@ mod tests {
                  BEGIN EXCLUSIVE;",
             )
             .unwrap();
+        let temporary_entries = || {
+            fs::read_dir(std::env::temp_dir())
+                .unwrap()
+                .flatten()
+                .filter(|entry| {
+                    entry
+                        .file_name()
+                        .to_string_lossy()
+                        .starts_with("mangodisk-privacy-scan-")
+                })
+                .count()
+        };
+        let before = temporary_entries();
 
-        assert_eq!(
-            count(
-                &fixture.path,
-                PlatformPrivacyBrowserKind::Chromium,
-                PrivacyDataKind::BrowsingHistory,
-                PrivacyTimeRange::AllTime,
-                0,
-            )
-            .unwrap(),
-            2
-        );
+        let error = count(
+            &fixture.path,
+            PlatformPrivacyBrowserKind::Chromium,
+            PrivacyDataKind::BrowsingHistory,
+            PrivacyTimeRange::AllTime,
+            0,
+        )
+        .unwrap_err();
+        assert_eq!(error.reason(), Some(CoreErrorReason::BrowserRunning));
+        let error = details(
+            &fixture.path,
+            PlatformPrivacyBrowserKind::Chromium,
+            PrivacyDataKind::BrowsingHistory,
+            PrivacyTimeRange::AllTime,
+            0,
+            0,
+            20,
+        )
+        .unwrap_err();
+        assert_eq!(error.reason(), Some(CoreErrorReason::BrowserRunning));
+        assert_eq!(temporary_entries(), before);
         connection.execute_batch("ROLLBACK").unwrap();
-    }
-
-    #[test]
-    fn snapshot_includes_committed_wal_records_and_is_removed_on_drop() {
-        let fixture = DatabaseFixture::new("wal-snapshot");
-        let connection = fixture.connection();
-        connection
-            .execute_batch(
-                "PRAGMA journal_mode = WAL;
-                 PRAGMA wal_autocheckpoint = 0;
-                 CREATE TABLE visits(id INTEGER PRIMARY KEY, visit_time INTEGER);
-                 INSERT INTO visits VALUES (1, 1), (2, 2), (3, 3);",
-            )
-            .unwrap();
-
-        let snapshot = DatabaseSnapshot::capture(&fixture.path).unwrap();
-        let snapshot_directory = snapshot.directory.clone();
-        assert!(snapshot_directory.is_dir());
-        assert_eq!(
-            count_at_path(
-                snapshot.path(),
-                PlatformPrivacyBrowserKind::Chromium,
-                PrivacyDataKind::BrowsingHistory,
-                PrivacyTimeRange::AllTime,
-                0,
-                true,
-            )
-            .unwrap(),
-            3
-        );
-        drop(snapshot);
-        assert!(!snapshot_directory.exists());
     }
 
     #[test]
@@ -2503,7 +2234,7 @@ mod tests {
     }
 
     #[test]
-    fn credential_details_expose_only_origins_and_counts() {
+    fn sensitive_details_are_aggregate_only_and_never_queried() {
         let fixture = DatabaseFixture::new("credential-details");
         fixture
             .connection()
@@ -2515,22 +2246,45 @@ mod tests {
             )
             .unwrap();
 
-        let entries = details(
-            &fixture.path,
-            PlatformPrivacyBrowserKind::Chromium,
+        for kind in [
+            PrivacyDataKind::Cookies,
             PrivacyDataKind::SavedPasswords,
-            PrivacyTimeRange::AllTime,
-            0,
-            0,
-            20,
-        )
-        .unwrap();
-        assert_eq!(entries.len(), 1);
-        assert_eq!(entries[0].label, "https://example.invalid");
-        assert_eq!(entries[0].item_count, 2);
-        let serialized = serde_json::to_string(&entries).unwrap();
-        assert!(!serialized.contains("private-user"));
-        assert!(!serialized.contains("secret"));
+            PrivacyDataKind::AutofillData,
+            PrivacyDataKind::SearchHistory,
+        ] {
+            assert!(details_are_aggregate_only(kind));
+            for browser in [
+                PlatformPrivacyBrowserKind::Chromium,
+                PlatformPrivacyBrowserKind::Firefox,
+            ] {
+                let error = details(
+                    &fixture.path,
+                    browser,
+                    kind,
+                    PrivacyTimeRange::AllTime,
+                    0,
+                    0,
+                    20,
+                )
+                .unwrap_err();
+                assert_eq!(error.code(), crate::CoreErrorCode::InvalidInput);
+                assert!(detail_query(browser, kind).is_err());
+            }
+        }
+        assert!(!details_are_aggregate_only(
+            PrivacyDataKind::BrowsingHistory
+        ));
+        assert_eq!(
+            count(
+                &fixture.path,
+                PlatformPrivacyBrowserKind::Chromium,
+                PrivacyDataKind::SavedPasswords,
+                PrivacyTimeRange::AllTime,
+                0,
+            )
+            .unwrap(),
+            2
+        );
     }
 
     #[cfg(unix)]

@@ -105,7 +105,9 @@ const result: PrivacyExecutionResult = {
   scan: null,
 };
 
-const passthroughStub = { template: '<div><slot name="actions" /><slot /><slot name="footer" /></div>' };
+const passthroughStub = {
+  template: '<div><slot name="actions" /><slot name="notice" /><slot /><slot name="footer" /></div>',
+};
 
 function mountPage() {
   return mount(PrivacyPage, {
@@ -169,6 +171,17 @@ describe('privacy page cleanup flow', () => {
 
     expect(scanButton.attributes('size')).toBe('lg');
     expect(scanButton.attributes('type')).toBe('button');
+    wrapper.unmount();
+  });
+
+  it('tells the user to close open browsers whose data was not read', () => {
+    const store = usePrivacyStore();
+    const result = structuredClone(scan);
+    result.items = result.items.map(item => ({ ...item, capability: 'browserRunning' as const, itemCount: 0 }));
+    store.scanResult = result;
+    const wrapper = mountPage();
+
+    expect(wrapper.get('[role="status"]').text()).toContain('Close Firefox and scan again');
     wrapper.unmount();
   });
 

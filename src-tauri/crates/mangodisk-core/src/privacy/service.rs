@@ -26,7 +26,7 @@ use crate::{
         OPERATION_RECORD_SCHEMA_VERSION,
     },
     shared::operation::{CoordinatedOperationKind, OperationCancellationToken, OperationGuard},
-    ApplicationCloseBatchResult, CoreError, CoreErrorCode, CoreResult,
+    ApplicationCloseBatchResult, CoreError, CoreErrorCode, CoreErrorReason, CoreResult,
 };
 
 use super::{
@@ -814,6 +814,20 @@ impl PrivacyService {
         );
         let fetch_limit = request.limit.saturating_add(1);
         let (presentation, mut entries) = match &candidate.action {
+            NativePrivacyAction::Database { kind, .. }
+            | NativePrivacyAction::ReviewOnlyFile { kind, .. }
+                if browser_database::details_are_aggregate_only(*kind) =>
+            {
+                (PrivacyDetailsPresentation::AggregateOnly, Vec::new())
+            }
+            NativePrivacyAction::Database { .. } | NativePrivacyAction::ReviewOnlyFile { .. }
+                if browser_owner_is_running(candidate)? =>
+            {
+                return Err(CoreError::operation_busy(
+                    "privacy details require the owning browser to be closed",
+                )
+                .with_reason(CoreErrorReason::BrowserRunning));
+            }
             NativePrivacyAction::Database {
                 path,
                 browser,
@@ -1592,22 +1606,29 @@ fn add_database_candidate(
         error.kind() == std::io::ErrorKind::PermissionDenied && !database_access_is_busy(error)
     });
     let file_unavailable = file_access_error.is_some() && !permission_denied && !source_busy;
-    // SQLite's read-only connection observes committed WAL records without copying browser data.
-    // A short busy timeout bounds races with an active writer. Positive live results remain gated
-    // by BrowserRunning so execution still requires process closure and a candidate-scoped refresh
-    // before any mutation.
-    let count = if !supports_time_range || permission_denied || file_unavailable || source_busy {
+    // Browser stores are read only while their browser is closed, and never copied. An open
+    // browser yields a BrowserRunning item without a count; execution closes the browser and
+    // refreshes the selected candidate before any mutation.
+    let count = if !supports_time_range
+        || permission_denied
+        || file_unavailable
+        || source_busy
+        || browser_running
+    {
         Ok(0)
     } else {
         browser_database::count(path, browser, kind, range, observed_at_ms)
     };
+    let count_busy = count
+        .as_ref()
+        .is_err_and(|error| error.reason() == Some(CoreErrorReason::BrowserRunning));
     // A read-only SQLite query can still create or update WAL/SHM coordination files. Capture
     // the fingerprint after the query so the scan cannot make its own result look stale. A running
     // browser result is used only for review until execution refreshes that selected candidate.
     // Windows Chromium can deny every shared read while its network service owns the Cookie
     // database. Bind the close-browser plan to safe file metadata without reading contents; this
     // fingerprint can authorize only the close prompt and is replaced before mutation.
-    let fingerprint = if source_busy && browser_running {
+    let fingerprint = if browser_running {
         deferred_database_fingerprint(path)
     } else {
         file_fingerprint(path)
@@ -1615,11 +1636,10 @@ fn add_database_candidate(
     let capability = match (&fingerprint, &count) {
         (Ok(_), _) if !supports_time_range => PrivacyCapabilityState::Unsupported,
         (_, _) if permission_denied => PrivacyCapabilityState::PermissionRequired,
-        (Ok(_), _) if source_busy && browser_running => PrivacyCapabilityState::BrowserRunning,
-        (_, _) if source_busy => PrivacyCapabilityState::Unavailable,
+        (Ok(_), _) if browser_running => PrivacyCapabilityState::BrowserRunning,
+        (_, _) if source_busy || count_busy => PrivacyCapabilityState::Unavailable,
         (_, _) if file_unavailable => PrivacyCapabilityState::Unavailable,
         (Ok(_), Ok(0)) => PrivacyCapabilityState::Empty,
-        (Ok(_), Ok(_)) if browser_running => PrivacyCapabilityState::BrowserRunning,
         (Ok(_), Ok(_)) => PrivacyCapabilityState::Ready,
         _ => PrivacyCapabilityState::SchemaUnsupported,
     };
@@ -1681,6 +1701,23 @@ fn privacy_item_is_actionable(item: &PrivacyItem) -> bool {
             item.capability,
             PrivacyCapabilityState::BrowserRunning | PrivacyCapabilityState::ApplicationRunning
         ))
+}
+
+/// Browser stores are read only while their browser is closed; a browser opened after the scan
+/// must not have its databases read for a detail page.
+fn browser_owner_is_running(candidate: &NativePrivacyCandidate) -> CoreResult<bool> {
+    if candidate.browser_process_names.is_empty() {
+        return Ok(false);
+    }
+    let running = current_platform()
+        .running_process_names()?
+        .into_iter()
+        .map(|name| process_leaf(&name).to_lowercase())
+        .collect::<BTreeSet<_>>();
+    Ok(candidate
+        .browser_process_names
+        .iter()
+        .any(|name| running.contains(&name.to_lowercase())))
 }
 
 fn database_access_is_busy(error: &std::io::Error) -> bool {
@@ -2341,24 +2378,14 @@ fn refresh_database_fingerprints(
 ) -> CoreResult<()> {
     for candidate in candidates.values_mut() {
         match &candidate.action {
+            // An open browser keeps the metadata-only fingerprint: its store is not opened while
+            // the browser runs. The candidate can only authorize the close prompt; execution
+            // replaces the deferred fingerprint after process closure and before any mutation.
+            NativePrivacyAction::Database { .. } | NativePrivacyAction::ReviewOnlyFile { .. }
+                if candidate.item.capability == PrivacyCapabilityState::BrowserRunning => {}
             NativePrivacyAction::Database { path, .. }
             | NativePrivacyAction::ReviewOnlyFile { path, .. } => {
-                match file_fingerprint(path) {
-                    Ok(fingerprint) => candidate.fingerprint = fingerprint,
-                    Err(_)
-                        if candidate.item.capability == PrivacyCapabilityState::BrowserRunning
-                            && fs::File::open(path)
-                                .err()
-                                .as_ref()
-                                .is_some_and(database_access_is_busy) =>
-                    {
-                        // Keep the metadata-only fingerprint created for an exclusively locked
-                        // database. This candidate can only authorize the close prompt; Core
-                        // replaces the deferred fingerprint after process closure and before
-                        // destructive execution.
-                    }
-                    Err(error) => return Err(error),
-                }
+                candidate.fingerprint = file_fingerprint(path)?;
             }
             _ => {}
         }
@@ -3703,6 +3730,124 @@ mod tests {
         assert!(!token.contains("Profile"));
     }
 
+    fn install_database_scan_session(
+        path: &Path,
+        kind: PrivacyDataKind,
+        process_names: &[String],
+    ) -> (String, String) {
+        let mut candidates = BTreeMap::new();
+        let mut items = Vec::new();
+        add_database_candidate(
+            "nonce",
+            "chrome",
+            "Google Chrome",
+            "chrome:Default",
+            "Default",
+            path,
+            PlatformPrivacyBrowserKind::Chromium,
+            kind,
+            PrivacyTimeRange::AllTime,
+            1,
+            false,
+            process_names,
+            &mut candidates,
+            &mut items,
+        );
+        let token = items[0].token.clone();
+        let scan_id = "synthetic-database-scan".to_string();
+        replace_scan_session(PrivacyScanSession {
+            #[cfg(windows)]
+            browser_application_paths: BTreeMap::new(),
+            public_result: PrivacyScanResult {
+                schema_version: PRIVACY_SCAN_SCHEMA_VERSION,
+                scan_id: scan_id.clone(),
+                revision: revision_for(&candidates),
+                time_range: PrivacyTimeRange::AllTime,
+                scanned_at_ms: 1,
+                elapsed_ms: 1,
+                items,
+                coverage: Vec::new(),
+            },
+            candidates,
+        })
+        .unwrap();
+        clear_pending_plan().unwrap();
+        (scan_id, token)
+    }
+
+    #[test]
+    fn sensitive_browser_details_report_only_totals() {
+        let _test_guard = test_operation_lock();
+        let directory = fixture_directory("cookie-details");
+        let path = directory.join("Cookies");
+        rusqlite::Connection::open(&path)
+            .unwrap()
+            .execute_batch(
+                "CREATE TABLE cookies(host_key TEXT, name TEXT, value TEXT, last_access_utc INTEGER);
+                 INSERT INTO cookies VALUES ('private.invalid', 'sid', 'secret-value', 1);",
+            )
+            .unwrap();
+        let (scan_id, token) = install_database_scan_session(&path, PrivacyDataKind::Cookies, &[]);
+
+        let page = PrivacyService::details(PrivacyDetailsRequest {
+            scan_id,
+            token,
+            offset: 0,
+            limit: 20,
+        })
+        .unwrap();
+        assert_eq!(page.presentation, PrivacyDetailsPresentation::AggregateOnly);
+        assert!(page.entries.is_empty());
+        let serialized = serde_json::to_string(&page).unwrap();
+        assert!(!serialized.contains("private.invalid"));
+        assert!(!serialized.contains("secret-value"));
+        clear_scan_session().unwrap();
+        fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn browser_details_require_the_browser_to_be_closed() {
+        let _test_guard = test_operation_lock();
+        let directory = fixture_directory("running-details");
+        let path = directory.join("History");
+        rusqlite::Connection::open(&path)
+            .unwrap()
+            .execute_batch(
+                "CREATE TABLE urls(id INTEGER PRIMARY KEY, url TEXT);
+                 CREATE TABLE visits(id INTEGER PRIMARY KEY, url INTEGER, visit_time INTEGER);
+                 INSERT INTO urls VALUES (1, 'https://fixture.invalid');
+                 INSERT INTO visits VALUES (1, 1, 1);",
+            )
+            .unwrap();
+        // The test binary itself stands in for a browser opened after the scan.
+        let executable = std::env::current_exe().unwrap();
+        let process_names = [
+            executable
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .into_owned(),
+            executable
+                .file_stem()
+                .unwrap()
+                .to_string_lossy()
+                .into_owned(),
+        ];
+        let (scan_id, token) =
+            install_database_scan_session(&path, PrivacyDataKind::BrowsingHistory, &process_names);
+
+        let error = PrivacyService::details(PrivacyDetailsRequest {
+            scan_id,
+            token,
+            offset: 0,
+            limit: 20,
+        })
+        .unwrap_err();
+        assert_eq!(error.reason(), Some(CoreErrorReason::BrowserRunning));
+        clear_scan_session().unwrap();
+        fs::remove_dir_all(directory).unwrap();
+    }
+
     #[test]
     fn detail_pages_are_read_only_and_bound_to_the_current_scan() {
         let _test_guard = test_operation_lock();
@@ -4334,7 +4479,7 @@ mod tests {
     }
 
     #[test]
-    fn running_browser_database_is_counted_but_remains_close_gated() {
+    fn running_browser_database_is_not_read_and_remains_close_gated() {
         let directory = fixture_directory("running-database-scan");
         let path = directory.join("History");
         let connection = rusqlite::Connection::open(&path).unwrap();
@@ -4367,8 +4512,13 @@ mod tests {
             &mut items,
         );
 
-        assert_eq!(items[0].item_count, 1);
+        // The open browser's store is neither counted nor fingerprinted from its contents.
+        assert_eq!(items[0].item_count, 0);
         assert_eq!(items[0].capability, PrivacyCapabilityState::BrowserRunning);
+        assert_eq!(
+            candidates.values().next().unwrap().fingerprint,
+            deferred_database_fingerprint(&path).unwrap()
+        );
         assert!(items[0].requires_browser_close);
         assert_eq!(candidates.len(), 1);
         drop(connection);

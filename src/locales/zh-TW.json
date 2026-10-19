@@ -151,6 +151,7 @@
     "timeRangeLabel": "清理時間範圍",
     "includeBrowsers": "包含瀏覽器",
     "includeBrowsersHint": "僅在開啟時掃描瀏覽器歷史記錄、Cookie 和已儲存登入清單",
+    "browsersOpenNotice": "請關閉 {browsers} 後重新掃描。瀏覽器開啟時，Disco 不會讀取其資料",
     "toggleItem": "選擇或取消選擇{item}",
     "permission": {
       "badge": "存取受限",
@@ -163,6 +164,8 @@
       "failed": "無法讀取詳細資料",
       "retry": "重試",
       "aggregateOnly": "僅提供彙總數量，暫無明細",
+      "totalsOnly": "為保護隱私，Disco 僅顯示此類資料的總數，從不顯示其內容",
+      "browserRunning": "請關閉 {browser} 以查看詳細資訊。瀏覽器開啟時，Disco 不會讀取其資料",
       "empty": "暫無可顯示的詳細資料",
       "loadMore": "顯示更多",
       "unknown": "未命名記錄"

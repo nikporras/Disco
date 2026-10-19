@@ -100,6 +100,30 @@ fn login_startup_changes_only_through_the_explicit_settings_command() {
     assert!(!app.contains("autolaunch().enable()"));
 }
 
+#[test]
+fn browser_stores_are_never_copied_or_listed_for_sensitive_kinds() {
+    let source = include_str!("../crates/mangodisk-core/src/privacy/browser_database.rs");
+    let production = source
+        .split("#[cfg(test)]")
+        .next()
+        .expect("production section");
+    // No private copy of a browser database may be created to read around a browser lock.
+    for forbidden in ["fs::copy(", "temp_dir()", "Snapshot"] {
+        assert!(!production.contains(forbidden), "{forbidden}");
+    }
+    // Detail queries never select cookie hosts, credential origins, form fields or search terms.
+    for forbidden in [
+        "SELECT host_key",
+        "SELECT host,",
+        "SELECT origin_url",
+        "SELECT name, COUNT(*) FROM autofill",
+        "SELECT fieldname",
+        "SELECT keyword_search_terms.term",
+    ] {
+        assert!(!production.contains(forbidden), "{forbidden}");
+    }
+}
+
 #[cfg(not(feature = "hardware-sensors"))]
 #[test]
 fn default_build_reports_hardware_sensors_as_unsupported() {

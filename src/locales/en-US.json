@@ -151,6 +151,7 @@
     "timeRangeLabel": "Cleanup time range",
     "includeBrowsers": "Include browsers",
     "includeBrowsersHint": "Browser history, cookies and saved-login lists are scanned only when this is on",
+    "browsersOpenNotice": "Close {browsers} and scan again. Disco does not read browser data while the browser is open",
     "toggleItem": "Toggle {item}",
     "permission": {
       "badge": "Access limited",
@@ -163,6 +164,8 @@
       "failed": "Details could not be loaded",
       "retry": "Try again",
       "aggregateOnly": "Only a total count is available",
+      "totalsOnly": "For privacy, Disco shows only the total for this data, never its contents",
+      "browserRunning": "Close {browser} to see these details. Disco does not read browser data while the browser is open",
       "empty": "No details to display",
       "loadMore": "Show more",
       "unknown": "Unnamed record"

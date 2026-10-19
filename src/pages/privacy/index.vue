@@ -91,6 +91,19 @@ const selectionModeOptions = computed<MdSelectionModeOption[]>(() => {
   return options;
 });
 const selectedCount = computed(() => selectionSummary.value.itemCount);
+// Core does not read a browser's stores while it is open; name those browsers once.
+const openBrowserNames = computed(() => [
+  ...new Set(
+    privacyItems.value
+      .filter(
+        item =>
+          (item.category === 'browserActivity' || item.category === 'browserAccountState') &&
+          item.capability === 'browserRunning' &&
+          item.itemCount === 0
+      )
+      .map(item => item.sourceName)
+  ),
+]);
 const selectedValue = computed(() =>
   selectionSummary.value.pendingScanCount
     ? t('privacy.selectedPendingSummary', {
@@ -370,6 +383,9 @@ watch(
     </MdOperationWorkspace>
 
     <MdResultWorkspace v-else-if="store.scanResult" class="privacy-results">
+      <template v-if="openBrowserNames.length" #notice>
+        <span role="status">{{ t('privacy.browsersOpenNotice', { browsers: openBrowserNames.join(', ') }) }}</span>
+      </template>
       <div class="privacy-result-content">
         <MdPrivacyResultList
           :busy="busy"

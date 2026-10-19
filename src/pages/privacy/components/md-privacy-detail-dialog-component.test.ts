@@ -37,9 +37,9 @@ const item: PrivacyItem = {
   synchronizationMayPropagate: true,
 };
 
-function mountDialog() {
+function mountDialog(dialogItem: PrivacyItem = item) {
   return mount(MdPrivacyDetailDialog, {
-    props: { modelValue: true, scanId: 'scan-1', item },
+    props: { modelValue: true, scanId: 'scan-1', item: dialogItem },
     global: {
       plugins: [i18n],
       stubs: {
@@ -58,6 +58,37 @@ function mountDialog() {
 
 describe('privacy detail dialog component', () => {
   beforeEach(() => detailsMock.mockReset());
+
+  it('explains that sensitive browser data is reported only as a total', async () => {
+    detailsMock.mockResolvedValueOnce({
+      schemaVersion: 1,
+      scanId: 'scan-1',
+      token: 'opaque-token',
+      totalItemCount: 3,
+      presentation: 'aggregateOnly',
+      entries: [],
+      nextOffset: null,
+    });
+    const wrapper = mountDialog();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('For privacy, Disco shows only the total for this data');
+    wrapper.unmount();
+  });
+
+  it('asks to close the browser instead of reading an open browser store', async () => {
+    detailsMock.mockRejectedValueOnce({
+      code: 'operationBusy',
+      details: { reason: 'browserRunning' },
+      retryable: true,
+    });
+    const wrapper = mountDialog();
+    await flushPromises();
+
+    expect(wrapper.get('[role="status"]').text()).toContain('Close Google Chrome to see these details');
+    expect(wrapper.text()).not.toContain('Could not');
+    wrapper.unmount();
+  });
 
   it('shows a read-only page and loads the next bounded page', async () => {
     detailsMock
@@ -133,7 +164,7 @@ describe('privacy detail dialog component', () => {
       entries: [],
       nextOffset: null,
     });
-    const wrapper = mountDialog();
+    const wrapper = mountDialog({ ...item, category: 'browserActivity', kind: 'downloadHistory' });
     await flushPromises();
 
     expect(wrapper.text()).toContain('Only a total count is available');

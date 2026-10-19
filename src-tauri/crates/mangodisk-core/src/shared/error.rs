@@ -31,6 +31,8 @@ pub enum CoreErrorReason {
     DirectoryNotEmpty,
     DeleteIncomplete,
     DeleteRecoveryFailed,
+    /// The owning browser is open, so its private stores are not read.
+    BrowserRunning,
 }
 
 impl CoreErrorReason {
@@ -46,6 +48,7 @@ impl CoreErrorReason {
             Self::DirectoryNotEmpty => "directoryNotEmpty",
             Self::DeleteIncomplete => "deleteIncomplete",
             Self::DeleteRecoveryFailed => "deleteRecoveryFailed",
+            Self::BrowserRunning => "browserRunning",
         }
     }
 }
