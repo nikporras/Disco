@@ -17,7 +17,32 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 - Cada fase en su propia rama `fase-N-<tema>` desde `main`; commit al terminar con un resumen de qué probar. No integrar en `main` sin aprobación.
 - Helper .NET: **.NET 10**, dependiente del runtime (empaquetado pendiente de la fase de distribución).
 - No hacer `push` sin que el usuario lo pida.
+- Al terminar cada fase, actualiza la sección **Estado actual** de este archivo en el mismo commit de la fase.
 - Superficie mínima (Fase 0b): nada de inyectar código en otros procesos (Explorer incluido); PawnIO y el servicio privilegiado solo con el feature `hardware-sensors`; arranque automático y PowerShell elevado solo por acción explícita del usuario; navegadores fuera del escaneo de privacidad salvo que el usuario lo active. `src-tauri/src/surface_tests.rs` lo vigila.
+
+## Estado actual
+
+*Actualizado: 19-oct-2026, al cerrar la Fase 0b.*
+
+**Fases terminadas**
+- Fase 0 — Línea base y corte con mangodisk.app (rama `fase-0-linea-base`, commit `1433d13`). BCU apunta a .NET 8; el helper usará .NET 10 con un parche WMI de una línea.
+- Fase 0b — Superficie mínima (rama `fase-0b-superficie-minima`, commits `81367de` y `bcaf42b`, creada encima de la Fase 0): sin barra de tareas ni inyección en Explorer, PawnIO detrás de `hardware-sensors`, navegadores fuera del escaneo de privacidad por defecto, solo totales para cookies/contraseñas/autocompletado/búsquedas y sin copias a `%TEMP%`.
+
+**Ramas pendientes de integrar en `main`** (esperan aprobación del usuario)
+- `fase-0-linea-base`
+- `fase-0b-superficie-minima` (incluye la anterior; integrarla sola deja `main` con ambas)
+
+**Falta probar a mano** (en el equipo de desarrollo, `C:\Dev` sin exclusión en Bitdefender)
+- Compilar con `pnpm tauri build --debug --no-bundle` y abrir `C:\Dev\Disco\target\debug\MangoDisk.exe`.
+- **Bitdefender**: que no marque ni el build ni el ejecutable al abrirlo. Si lo marca, anotar el nombre de la detección y la ruta.
+- **taskbar-layout**: que las métricas salgan solo como iconos en el área de notificación y que no se cree `%LOCALAPPDATA%\app.mangodisk.desktop\taskbar-layout`.
+- **Privacidad**:
+  - "Include browsers" empieza apagado, y sin él no aparecen navegadores.
+  - Con un navegador abierto sale el aviso de cerrarlo y no aparece ninguna carpeta `mangodisk-privacy-scan-*` en `%TEMP%`.
+  - Con el navegador cerrado, "Ver detalles" de cookies, contraseñas, autocompletado o búsquedas muestra solo el aviso de totales, y el historial sigue listando URL.
+- Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
+
+**Siguiente fase**: Fase 1 — Renombrado visible a Disco (identificador `io.github.nikporras.disco`, `check:identity` actualizado, `NOTICE`/`THIRD-PARTY-NOTICES`). Empieza solo tras aprobación y tras las pruebas manuales de arriba.
 
 ## Comandos
 
