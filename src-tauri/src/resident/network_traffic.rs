@@ -1,64 +1,35 @@
-//! Desktop lifecycle adapter for Core's per-interface traffic history.
-use std::{sync::Arc, time::Duration};
+//! Desktop lifecycle adapter for Core's per-interface traffic totals. Totals are
+//! kept for the current session only; nothing about network traffic is written
+//! to disk, and history files left by earlier versions are removed at startup.
+use std::sync::Arc;
 
-use mangodisk_core::{system_resources::network_traffic::NetworkTraffic, CoreError, CoreResult};
+use mangodisk_core::{
+    system_resources::network_traffic::{remove_legacy_history, NetworkTraffic},
+    CoreError, CoreResult,
+};
 use tauri::Manager;
 
 use super::runtime::{ResidentReading, ResidentState};
 
-pub fn install(app: &tauri::AppHandle, state: &ResidentState) -> Option<Arc<NetworkTraffic>> {
-    let result = app
-        .path()
-        .app_data_dir()
-        .map_err(|error| CoreError::persistence(error.to_string()))
-        .and_then(|path| NetworkTraffic::open(path.join("network-traffic.json")));
-    match result {
-        Ok(traffic) => {
-            let traffic = Arc::new(traffic);
-            *state
-                .network_traffic
-                .lock()
-                .unwrap_or_else(|error| error.into_inner()) = Some(traffic.clone());
-            let weak = Arc::downgrade(&traffic);
-            std::thread::spawn(move || {
-                let mut failed = false;
-                loop {
-                    std::thread::sleep(Duration::from_secs(60));
-                    let Some(traffic) = weak.upgrade() else {
-                        break;
-                    };
-                    match traffic.flush(false) {
-                        Ok(_) => {
-                            if failed {
-                                log::info!("network_traffic_save_recovered");
-                            }
-                            failed = false;
-                        }
-                        Err(error) => {
-                            if !failed {
-                                log::warn!(
-                                    "network_traffic_save_failed error={}",
-                                    mangodisk_platform::diagnostics::text(&error)
-                                );
-                            }
-                            failed = true;
-                        }
-                    }
-                }
-            });
-            log::info!("network_traffic_loaded save_interval_seconds=60");
-            Some(traffic)
-        }
-        Err(error) => {
-            log::warn!(
-                "network_traffic_load_failed outcome=history_preserved error={}",
+pub fn install(app: &tauri::AppHandle, state: &ResidentState) -> Arc<NetworkTraffic> {
+    match app.path().app_data_dir() {
+        Ok(directory) => match remove_legacy_history(&directory) {
+            Ok(removed) => log::info!("network_traffic_legacy_cleanup removed_count={removed}"),
+            Err(error) => log::warn!(
+                "network_traffic_legacy_cleanup_failed error={}",
                 mangodisk_platform::diagnostics::text(&error)
-            );
-            None
-        }
+            ),
+        },
+        Err(error) => log::warn!("network_traffic_legacy_cleanup_skipped error={error}"),
     }
+    let traffic = Arc::new(NetworkTraffic::default());
+    *state
+        .network_traffic
+        .lock()
+        .unwrap_or_else(|error| error.into_inner()) = Some(traffic.clone());
+    log::info!("network_traffic_started persistence=none");
+    traffic
 }
-
 pub fn reset(
     state: &ResidentState,
     interface_id: &str,
@@ -107,25 +78,6 @@ pub fn reset(
     reading.revision += 1;
     let reading = reading.clone();
     state.wake();
-    log::info!("network_traffic_reset scope=displayed_interface outcome=saved");
+    log::info!("network_traffic_reset scope=displayed_interface outcome=applied");
     Ok(reading)
-}
-
-pub fn close(app: &tauri::AppHandle) {
-    let traffic = app.try_state::<Arc<ResidentState>>().and_then(|state| {
-        state
-            .network_traffic
-            .lock()
-            .unwrap_or_else(|error| error.into_inner())
-            .clone()
-    });
-    if let Some(traffic) = traffic {
-        match traffic.flush(true) {
-            Ok(written) => log::info!("network_traffic_closed written={written}"),
-            Err(error) => log::warn!(
-                "network_traffic_close_failed error={}",
-                mangodisk_platform::diagnostics::text(&error)
-            ),
-        }
-    }
 }

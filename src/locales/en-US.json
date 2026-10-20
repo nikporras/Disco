@@ -4354,10 +4354,10 @@
     "reset": "Reset",
     "resetHint": "Reset totals for this interface\nSession traffic is kept",
     "resetTitle": "Reset traffic totals?",
-    "resetDescription": "Reset the saved totals for {name}. Session traffic is kept",
-    "resetFailed": "Could not save the reset. Totals are unchanged",
-    "cumulativeHint": "Since {since}\nSaved separately for each monitored interface\nIncludes local-network traffic; unmonitored periods are excluded",
-    "cumulativeUnavailable": "Saved totals are temporarily unavailable\nSession traffic is still recorded"
+    "resetDescription": "Reset the totals for {name}. Session traffic is kept",
+    "resetFailed": "Could not reset. Totals are unchanged",
+    "cumulativeHint": "Since {since}\nKept separately for each monitored interface until the app closes\nIncludes local-network traffic; unmonitored periods are excluded",
+    "cumulativeUnavailable": "Totals are temporarily unavailable\nSession traffic is still recorded"
   },
   "diskDetails": {
     "activity": "Disk activity",

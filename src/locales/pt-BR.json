@@ -4354,10 +4354,10 @@
     "reset": "Redefinir",
     "resetHint": "Redefinir os totais desta interface\nO tráfego da sessão é mantido",
     "resetTitle": "Redefinir totais de tráfego?",
-    "resetDescription": "Redefinir os totais salvos de {name}. O tráfego da sessão é mantido",
-    "resetFailed": "Não foi possível salvar a redefinição. Os totais não mudaram",
-    "cumulativeHint": "Desde {since}\nTráfego monitorado salvo por interface\nInclui a rede local; períodos sem monitoramento são excluídos",
-    "cumulativeUnavailable": "Totais salvos indisponíveis no momento\nO tráfego da sessão continua sendo registrado"
+    "resetDescription": "Redefinir os totais de {name}. O tráfego da sessão é mantido",
+    "resetFailed": "Não foi possível redefinir. Os totais não foram alterados",
+    "cumulativeHint": "Desde {since}\nMantido separadamente para cada interface monitorada até o app fechar\nInclui tráfego da rede local; períodos não monitorados são excluídos",
+    "cumulativeUnavailable": "Os totais estão temporariamente indisponíveis\nO tráfego da sessão continua sendo registrado"
   },
   "diskDetails": {
     "activity": "Atividade do disco",

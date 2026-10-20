@@ -1,22 +1,19 @@
-//! Per-interface monitored traffic. Only accepted intervals are accumulated;
-//! operating-system counters are never treated as recoverable offline history.
+//! Per-interface monitored traffic for the current app session. Only accepted
+//! intervals are accumulated; operating-system counters are never treated as
+//! recoverable offline history. Totals live in memory only and are never
+//! written to disk, so every launch starts each interface from zero.
 
-use std::{
-    collections::BTreeMap,
-    fs::{self, File},
-    io::{Read, Write},
-    path::{Path, PathBuf},
-    sync::Mutex,
-};
+use std::{collections::BTreeMap, fs, path::Path, sync::Mutex};
 
-use fs2::FileExt;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::{CoreError, CoreResult};
 
 const MAX_INTERFACES: usize = 128;
 const MAX_TIMESTAMP_MS: u64 = 253_402_300_799_999;
-const MAX_FILE_BYTES: u64 = 256 * 1024;
+
+/// Files written by earlier MangoDisk versions, which persisted traffic totals.
+pub const LEGACY_HISTORY_FILES: [&str; 2] = ["network-traffic.json", "network-traffic.lock"];
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -27,8 +24,7 @@ pub struct TrafficTotal {
     pub started_at_ms: u64,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[derive(Debug, Clone)]
 struct Entry {
     received: u64,
     transmitted: u64,
@@ -44,87 +40,12 @@ impl Entry {
     }
 }
 
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct History {
-    schema_version: u32,
-    interfaces: BTreeMap<String, Entry>,
-}
-struct State {
-    history: History,
-    revision: u64,
-    saved_revision: u64,
-    closed: bool,
-}
-
-/// Memory updates do no I/O. Writers serialize snapshots so a delayed periodic
-/// save cannot restore data from before a successful reset.
+/// Session-only traffic totals. Updates and resets never touch the filesystem.
+#[derive(Default)]
 pub struct NetworkTraffic {
-    path: PathBuf,
-    state: Mutex<State>,
-    writer: Mutex<()>,
-    _lease: File,
+    interfaces: Mutex<BTreeMap<String, Entry>>,
 }
 impl NetworkTraffic {
-    /// Missing history starts empty. Unknown, corrupt or oversized history is
-    /// rejected and preserved, rather than silently replacing user totals.
-    pub fn open(path: PathBuf) -> CoreResult<Self> {
-        let parent = path
-            .parent()
-            .ok_or_else(|| CoreError::invalid_input("traffic path has no parent"))?;
-        fs::create_dir_all(parent).map_err(|error| failure(&path, "create_directory", error))?;
-        let lease = File::options()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(path.with_extension("lock"))
-            .map_err(|error| failure(&path, "open_lease", error))?;
-        lease
-            .try_lock_exclusive()
-            .map_err(|error| failure(&path, "lock", error))?;
-        let history = match File::open(&path) {
-            Ok(file) => {
-                let mut bytes = Vec::new();
-                file.take(MAX_FILE_BYTES + 1)
-                    .read_to_end(&mut bytes)
-                    .map_err(|error| failure(&path, "read", error))?;
-                if bytes.len() as u64 > MAX_FILE_BYTES {
-                    return Err(failure(&path, "decode", "history exceeds size limit"));
-                }
-                let history: History = serde_json::from_slice(&bytes)
-                    .map_err(|error| failure(&path, "decode", error))?;
-                if history.schema_version != 1
-                    || history.interfaces.len() > MAX_INTERFACES
-                    || history.interfaces.iter().any(|(id, entry)| {
-                        !valid_id(id)
-                            || entry.started_at_ms == 0
-                            || entry.started_at_ms > MAX_TIMESTAMP_MS
-                    })
-                {
-                    return Err(failure(&path, "validate", "unsupported or invalid history"));
-                }
-                history
-            }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => History {
-                schema_version: 1,
-                interfaces: BTreeMap::new(),
-            },
-            Err(error) => return Err(failure(&path, "open", error)),
-        };
-        Ok(Self {
-            path,
-            state: Mutex::new(State {
-                history,
-                revision: 0,
-                saved_revision: 0,
-                closed: false,
-            }),
-            writer: Mutex::new(()),
-            _lease: lease,
-        })
-    }
-
     pub fn record(
         &self,
         id: &str,
@@ -136,131 +57,90 @@ impl NetworkTraffic {
         if !valid_id(id) || start_ms == 0 || end_ms < start_ms || end_ms > MAX_TIMESTAMP_MS {
             return None;
         }
-        let mut state = self.state.lock().unwrap_or_else(|error| error.into_inner());
-        if state.closed {
-            return state.history.interfaces.get(id).map(Entry::total);
-        }
-        if !state.history.interfaces.contains_key(id)
-            && state.history.interfaces.len() >= MAX_INTERFACES
-        {
+        let mut interfaces = self
+            .interfaces
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        if !interfaces.contains_key(id) && interfaces.len() >= MAX_INTERFACES {
             return None;
         }
-        let inserted = !state.history.interfaces.contains_key(id);
-        let entry = state
-            .history
-            .interfaces
-            .entry(id.to_owned())
-            .or_insert(Entry {
-                received: 0,
-                transmitted: 0,
-                started_at_ms: start_ms,
-            });
-        let before = (entry.received, entry.transmitted);
+        let entry = interfaces.entry(id.to_owned()).or_insert(Entry {
+            received: 0,
+            transmitted: 0,
+            started_at_ms: start_ms,
+        });
         // A reset can finish while a native query is in flight. Exclude its
         // entire overlapping interval instead of reintroducing pre-reset bytes.
         if start_ms >= entry.started_at_ms {
             entry.received = entry.received.saturating_add(received);
             entry.transmitted = entry.transmitted.saturating_add(transmitted);
         }
-        let changed = inserted || before != (entry.received, entry.transmitted);
-        let total = entry.total();
-        if changed {
-            state.revision = state.revision.wrapping_add(1);
-        }
-        Some(total)
+        Some(entry.total())
     }
 
     pub fn total(&self, id: &str) -> Option<TrafficTotal> {
-        self.state
+        self.interfaces
             .lock()
             .unwrap_or_else(|error| error.into_inner())
-            .history
-            .interfaces
             .get(id)
             .map(Entry::total)
     }
 
-    /// Persist before publishing the reset. A failed write leaves memory and
-    /// disk unchanged; expected_start prevents stale confirmations resetting twice.
+    /// expected_start binds the reset to the displayed total, so a stale
+    /// confirmation cannot reset an interface twice.
     pub fn reset(&self, id: &str, expected_start: u64, now_ms: u64) -> CoreResult<TrafficTotal> {
-        let _writer = self
-            .writer
+        let mut interfaces = self
+            .interfaces
             .lock()
             .unwrap_or_else(|error| error.into_inner());
-        let mut state = self.state.lock().unwrap_or_else(|error| error.into_inner());
-        let entry = state
-            .history
-            .interfaces
-            .get(id)
+        let entry = interfaces
+            .get_mut(id)
             .ok_or_else(|| CoreError::invalid_input("traffic interface is not recorded"))?;
-        if state.closed
-            || entry.started_at_ms != expected_start
+        if entry.started_at_ms != expected_start
             || now_ms <= entry.started_at_ms
             || now_ms > MAX_TIMESTAMP_MS
         {
             return Err(CoreError::operation_busy("traffic reset target changed"));
         }
-        let mut history = state.history.clone();
-        let reset = Entry {
+        *entry = Entry {
             received: 0,
             transmitted: 0,
             started_at_ms: now_ms,
         };
-        history.interfaces.insert(id.to_owned(), reset.clone());
-        self.write(&history)?;
-        state.history = history;
-        state.revision = state.revision.wrapping_add(1);
-        state.saved_revision = state.revision;
-        Ok(reset.total())
+        Ok(entry.total())
     }
+}
 
-    /// Periodic snapshots release the state lock before doing file I/O. Closing
-    /// freezes accumulation before the final snapshot, including idle shutdowns.
-    pub fn flush(&self, close: bool) -> CoreResult<bool> {
-        let _writer = self
-            .writer
-            .lock()
-            .unwrap_or_else(|error| error.into_inner());
-        let (history, revision) = {
-            let mut state = self.state.lock().unwrap_or_else(|error| error.into_inner());
-            state.closed |= close;
-            if state.revision == state.saved_revision {
-                return Ok(false);
-            }
-            (state.history.clone(), state.revision)
+/// Removes traffic history left by earlier versions. Only regular files with the
+/// known names are deleted; links, directories and other files are left alone.
+/// Returns how many files were removed.
+pub fn remove_legacy_history(directory: &Path) -> CoreResult<usize> {
+    let mut removed = 0;
+    for name in LEGACY_HISTORY_FILES {
+        let path = directory.join(name);
+        let metadata = match fs::symlink_metadata(&path) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(failure(name, "inspect", error)),
         };
-        self.write(&history)?;
-        self.state
-            .lock()
-            .unwrap_or_else(|error| error.into_inner())
-            .saved_revision = revision;
-        Ok(true)
+        if !metadata.is_file() || metadata.file_type().is_symlink() {
+            continue;
+        }
+        match fs::remove_file(&path) {
+            Ok(()) => removed += 1,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(failure(name, "remove", error)),
+        }
     }
-
-    fn write(&self, history: &History) -> CoreResult<()> {
-        let parent = self.path.parent().expect("validated history directory");
-        let mut temporary = tempfile::NamedTempFile::new_in(parent)
-            .map_err(|error| failure(&self.path, "create_temporary", error))?;
-        serde_json::to_writer(&mut temporary, history)
-            .map_err(|error| failure(&self.path, "encode", error))?;
-        temporary
-            .flush()
-            .and_then(|()| temporary.as_file().sync_all())
-            .map_err(|error| failure(&self.path, "sync", error))?;
-        temporary
-            .persist(&self.path)
-            .map_err(|error| failure(&self.path, "replace", error.error))?;
-        Ok(())
-    }
+    Ok(removed)
 }
 
 fn valid_id(id: &str) -> bool {
     !id.is_empty() && id.len() <= 512 && !id.chars().any(char::is_control)
 }
-fn failure(path: &Path, stage: &str, error: impl std::fmt::Display) -> CoreError {
+fn failure(name: &str, stage: &str, error: impl std::fmt::Display) -> CoreError {
     CoreError::persistence(format!(
-        "network traffic stage={stage} path={} error={error}",
-        path.display()
+        "legacy network traffic stage={stage} file={name} error={error}"
     ))
 }
 

@@ -169,10 +169,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn persistent_totals_only_include_valid_selected_intervals_and_survive_a_restart() {
-        let directory = tempfile::tempdir().unwrap();
-        let path = directory.path().join("traffic.json");
-        let traffic = Arc::new(NetworkTraffic::open(path.clone()).unwrap());
+    fn session_totals_only_include_valid_selected_intervals_and_survive_a_sampler_restart() {
+        let traffic = Arc::new(NetworkTraffic::default());
         let lan = interface("lan", true, Some(1)).interface;
         let wifi = interface("wifi", true, Some(2)).interface;
         let counters = |received| NetworkCounters {
@@ -211,10 +209,8 @@ mod tests {
             .unwrap();
         assert_eq!(traffic.total("lan").unwrap().received_bytes, "200");
         assert_eq!(traffic.total("wifi").unwrap().received_bytes, "100");
-        traffic.flush(true).unwrap();
+        // A restarted sampler keeps the session totals held by the shared history.
         drop(delta);
-        drop(traffic);
-        let traffic = Arc::new(NetworkTraffic::open(path).unwrap());
         let mut delta = NetworkDelta::default();
         delta.set_traffic(traffic.clone());
         assert!(delta

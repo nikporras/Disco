@@ -219,6 +219,7 @@ Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de 
 - **Privacidad de navegadores desactivada por defecto**: `PrivacyScanRequest.includeBrowsers` (por defecto `false` en Core y en la interfaz, no se recuerda entre sesiones). Sin activarlo no se abre ninguna base de datos de navegador.
 - **Solo totales** para cookies, contraseñas guardadas, autocompletado y búsquedas: "Ver detalles" no consulta sus bases de datos (ni sitios ni nombres de campo). El resto de detalles (historial, descargas…) se lee solo con el navegador cerrado.
 - **Sin copias a `%TEMP%`**: se eliminó la instantánea de bases de datos bloqueadas. Con el navegador abierto no se lee su base de datos; el elemento queda como "Escanear después de cerrar", con un aviso que nombra los navegadores abiertos, y los detalles responden `browserRunning` con un mensaje claro.
+- **Tráfico de red solo en memoria**: Bitdefender puso en cuarentena varias veces `%APPDATA%\app.mangodisk.desktop\network-traffic.json` con la app abierta. El archivo solo contenía el GUID del adaptador, los bytes acumulados y la fecha de inicio, y se reemplazaba cada minuto mediante un archivo temporal y un renombrado. Ahora los totales duran la sesión y no se escriben en disco; al arrancar se borran `network-traffic.json` y `network-traffic.lock` de versiones anteriores. No se obtuvo el nombre de la detección.
 - Tests de guarda en `src-tauri/src/surface_tests.rs`: ninguna API de inyección en procesos, `build.rs` sin código nativo, sensores opcionales, arranque automático solo desde su comando.
 - **Prueba**: `pnpm check`; compilar y comprobar que Bitdefender ya no lo marca; Explorer sin `xaml-*.dll` de Disco.
 
@@ -261,9 +262,10 @@ Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de 
 ### Fase 9 — Extras y port progresivo
 - Windows Features/Updates, Oculus, locale `es-ES`, renombrado interno (Nivel 2) y port a Rust de las piezas del helper más estables.
 
-### Fase 10 — Sensores de hardware (pendiente de diseño)
+### Fase 10 — Sensores de hardware y monitor de sistema (pendiente de diseño)
 - Recuperar la temperatura de CPU y otros sensores, probablemente con LibreHardwareMonitor (revisar antes su licencia, MPL-2.0, y cómo carga su driver). Partir del código conservado tras el feature `hardware-sensors` o sustituir PawnIO.
 - Siempre opcional y con instalación explícita del usuario; nunca en el build por defecto hasta tener la firma de código de la Fase 11.
+- **Rediseñar el monitor de red** (la opción C de la investigación de `network-traffic.json`): replantear el monitor heredado de MangoDisk dentro de funciones tipo Administrador de tareas (procesos, CPU, memoria, disco, red). Cualquier dato por proceso o por conexión debe ser opcional, mostrarse solo en memoria y no guardarse en disco sin una decisión explícita de privacidad.
 
 ### Fase 11 — Distribución
 - **Firma de código** de todos los ejecutables que se publiquen (`Disco.exe`, instalador NSIS, helper .NET y, si existe, el helper privilegiado), por ejemplo con **SignPath Foundation** (firma gratuita para proyectos open source, con compilación en CI verificable). `build-privileged.mjs` ya exige Authenticode válido en release; extender la misma comprobación al resto.

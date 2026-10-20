@@ -68,7 +68,7 @@ from SMART lifetime counters. Interface IP/MAC metadata remains local display da
 never diagnostic or external-service payloads. macOS reuses its existing address
 enumeration; Windows caches the local unicast table for ten seconds and invalidates
 it on native topology changes. No per-process I/O/network tracking is added. Resource
-version 25 adds disk health and network session totals/link rates; version 26 adds optional Wi-Fi metadata; version 27 adds lossless ATA attributes and additional standardized NVMe counters; version 28 adds per-interface persisted network traffic totals. Disk health is
+version 25 adds disk health and network session totals/link rates; version 26 adds optional Wi-Fi metadata; version 27 adds lossless ATA attributes and additional standardized NVMe counters; version 28 adds per-interface network traffic totals (session-only in Disco). Disk health is
 read only on its visible detail page, cached for five minutes, and expires after
 ten minutes. Reopening the same disk preserves the last health fields while stale
 results refresh in the background; cached status remains explicit. Unavailable
@@ -909,20 +909,19 @@ values use the system foreground. Descending boundaries hold for 100 RPM to
 avoid flicker and reset when the mode, selected fans, or rules change.
 
 
-### Persisted network traffic
+### Session network traffic
 
 Core `system_resources::network_traffic` accumulates only valid intervals from
-`NetworkDelta` for the selected interface. Unobserved gaps, application downtime,
-source changes and counter rollbacks never import operating-system totals.
-Network identities retain per-interface history across application restarts;
-this is monitored traffic, including LAN traffic, rather than Internet billing.
+`NetworkDelta` for the selected interface. Unobserved gaps, source changes and
+counter rollbacks never import operating-system totals. This is monitored
+traffic, including LAN traffic, rather than Internet billing.
 
-`network-traffic.json` uses schema 1. Missing history starts empty; unknown,
-malformed or oversized history is preserved and disables persisted totals.
-A lifetime file lease prevents concurrent writers. Background saves occur at
-most once per minute, with an additional final save on normal exit. Atomic
-same-directory replacement prevents partial JSON. An abnormal termination may
-lose up to one unsaved minute. Reset saves before acknowledgement, targets the
-confirmed interface and start time, and preserves the current session counters.
-Intervals overlapping a reset are excluded. The adapter refreshes totals before
-publishing a snapshot so an in-flight sample cannot restore pre-reset values.
+Totals are kept per interface for the current application session only. Disco
+writes nothing about network traffic to disk: the per-minute `network-traffic.json`
+saves and its `.lock` lease inherited from MangoDisk were removed because an
+antivirus repeatedly quarantined the file, and because a stable adapter GUID with
+traffic totals is unnecessary persisted data. At startup the adapter deletes those
+legacy files (regular files only). Reset targets the confirmed interface and start
+time and preserves the current session counters. Intervals overlapping a reset are
+excluded. The adapter refreshes totals before publishing a snapshot so an in-flight
+sample cannot restore pre-reset values.

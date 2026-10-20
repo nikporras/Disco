@@ -124,6 +124,33 @@ fn browser_stores_are_never_copied_or_listed_for_sensitive_kinds() {
     }
 }
 
+#[test]
+fn network_traffic_is_never_written_to_disk() {
+    let core = include_str!("../crates/mangodisk-core/src/system_resources/network_traffic.rs");
+    let production = core
+        .split("#[cfg(test)]")
+        .next()
+        .expect("production section");
+    // Only removal of legacy history files may touch the filesystem.
+    for forbidden in [
+        "fs::write",
+        "File::",
+        "OpenOptions",
+        "tempfile",
+        "serde_json",
+        "Deserialize",
+        "lock_exclusive",
+    ] {
+        assert!(!production.contains(forbidden), "{forbidden}");
+    }
+    assert!(production.contains("LEGACY_HISTORY_FILES"));
+    let adapter = include_str!("resident/network_traffic.rs");
+    assert!(adapter.contains("remove_legacy_history"));
+    for forbidden in [".flush(", "NetworkTraffic::open", "thread::spawn"] {
+        assert!(!adapter.contains(forbidden), "{forbidden}");
+    }
+}
+
 #[cfg(not(feature = "hardware-sensors"))]
 #[test]
 fn default_build_reports_hardware_sensors_as_unsupported() {

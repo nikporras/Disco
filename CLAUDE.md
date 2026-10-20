@@ -34,8 +34,10 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 
 **Probado a mano por el usuario (19-oct-2026)**: Bitdefender no marca ni el build ni el ejecutable (`C:\Dev` sin excluir); no se crea `taskbar-layout`; con Chrome abierto sale el aviso y los datos sensibles quedan en "Pending scan"; no hay `mangodisk-privacy-scan-*` en `%TEMP%`; el detalle de cookies muestra solo el total.
 
+El aviso rediseñado de navegadores abiertos (commit `5d539a9`) está aprobado.
+
 **Falta probar a mano**
-- Aviso de navegadores abiertos rediseñado (advertencia con icono y botón "Scan again"): compilar con `pnpm tauri build --debug --no-bundle`, abrir `C:\Dev\Disco\target\debug\MangoDisk.exe` y, en Privacidad, activar "Include browsers" con un navegador abierto.
+- Tráfico de red solo en memoria: quitar la exclusión de Bitdefender para `%APPDATA%\app.mangodisk.desktop`, compilar con `pnpm tauri build --debug --no-bundle` y abrir `C:\Dev\Disco\target\debug\MangoDisk.exe`. Al arrancar deben desaparecer `network-traffic.json` y `network-traffic.lock` y no volver a crearse. El panel de red debe seguir mostrando los totales, y "Reset" debe ponerlos a cero.
 - Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
 
 **Siguiente fase**: Fase 1 — Renombrado visible a Disco (identificador `io.github.nikporras.disco`, `check:identity` actualizado, `NOTICE`/`THIRD-PARTY-NOTICES`). Empieza solo tras aprobación y tras las pruebas manuales de arriba.

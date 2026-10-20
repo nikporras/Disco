@@ -199,9 +199,7 @@ pub fn start(app: &tauri::AppHandle, preferences: ResidentPreferences) -> Arc<Re
             MetricId::ALL.map(|metric| sampling_workers::start(metric, origin, sender.clone()));
         let mut slots: [SamplingSlot; 5] = std::array::from_fn(|_| SamplingSlot::default());
         let mut cache = ResourceCache::default();
-        if let Some(traffic) = super::network_traffic::install(&app, &worker) {
-            cache.set_network_traffic(traffic);
-        }
+        cache.set_network_traffic(super::network_traffic::install(&app, &worker));
         let disk_activity = super::disk_activity::start(origin, sender.clone());
         let mut disk_slot = SamplingSlot::default();
         let mut disk_status = MetricStatus::Loading;

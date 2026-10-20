@@ -4354,10 +4354,10 @@
     "reset": "重置",
     "resetHint": "重置当前网卡的累计流量\n保留本次流量",
     "resetTitle": "重置累计流量？",
-    "resetDescription": "重置 {name} 的累计流量，保留本次流量",
-    "resetFailed": "重置未能保存，累计流量未更改",
-    "cumulativeHint": "开始于 {since}\n按网卡分别保存监测到的流量\n包含局域网流量，未监测时段不计入",
-    "cumulativeUnavailable": "累计数据暂不可用\n本次流量不受影响"
+    "resetDescription": "重置 {name} 的总量。本次会话流量会保留",
+    "resetFailed": "无法重置，总量未更改",
+    "cumulativeHint": "自 {since} 起\n在应用关闭前按每个监控的接口分别保留\n包含局域网流量；未监控的时段不计入",
+    "cumulativeUnavailable": "总量暂时不可用\n本次会话流量仍在记录"
   },
   "diskDetails": {
     "activity": "磁盘活动",

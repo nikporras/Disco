@@ -4354,10 +4354,10 @@
     "reset": "重設",
     "resetHint": "重設目前網卡的累計流量\n保留本次流量",
     "resetTitle": "重設累計流量？",
-    "resetDescription": "重設 {name} 的累計流量，保留本次流量",
-    "resetFailed": "無法儲存重設，累計流量未變更",
-    "cumulativeHint": "開始於 {since}\n按網卡分別儲存監測到的流量\n包含區域網路流量，未監測時段不計入",
-    "cumulativeUnavailable": "累計資料暫時無法使用\n本次流量不受影響"
+    "resetDescription": "重設 {name} 的總量。本次工作階段流量會保留",
+    "resetFailed": "無法重設，總量未變更",
+    "cumulativeHint": "自 {since} 起\n在應用程式關閉前按每個監控的介面分別保留\n包含區域網路流量；未監控的時段不計入",
+    "cumulativeUnavailable": "總量暫時無法使用\n本次工作階段流量仍在記錄"
   },
   "diskDetails": {
     "activity": "磁碟活動",

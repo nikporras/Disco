@@ -392,7 +392,6 @@ pub fn run() {
                 code
             );
         } else if matches!(&_event, tauri::RunEvent::Exit) {
-            resident::network_traffic::close(_app);
             log::info!("application_exited process_id={}", std::process::id());
         }
         #[cfg(windows)]
