@@ -151,7 +151,8 @@
     "timeRangeLabel": "Диапазон времени очистки",
     "includeBrowsers": "Включить браузеры",
     "includeBrowsersHint": "История, файлы cookie и списки сохранённых входов браузеров проверяются, только если это включено",
-    "browsersOpenNotice": "Закройте {browsers} и повторите проверку. Disco не читает данные браузера, пока он открыт",
+    "browsersOpenTitle": "Закройте {browsers}",
+    "browsersOpenNotice": "Disco не читает данные браузера, пока он открыт. Закройте его и повторите проверку",
     "toggleItem": "Переключить {item}",
     "permission": {
       "badge": "Ограниченный доступ",

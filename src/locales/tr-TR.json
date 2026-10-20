@@ -151,7 +151,8 @@
     "timeRangeLabel": "Temizlenecek dönem",
     "includeBrowsers": "Tarayıcıları dahil et",
     "includeBrowsersHint": "Tarayıcı geçmişi, çerezler ve kayıtlı oturum listeleri yalnızca bu açıkken taranır",
-    "browsersOpenNotice": "{browsers} uygulamasını kapatıp yeniden tarayın. Disco, tarayıcı açıkken tarayıcı verilerini okumaz",
+    "browsersOpenTitle": "{browsers} kapatılmalı",
+    "browsersOpenNotice": "Disco, tarayıcı açıkken tarayıcı verilerini okumaz. Kapatıp yeniden tarayın",
     "toggleItem": "{item} seçimini değiştir",
     "permission": {
       "badge": "Erişim sınırlı",

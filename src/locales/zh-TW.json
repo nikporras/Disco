@@ -151,7 +151,8 @@
     "timeRangeLabel": "清理時間範圍",
     "includeBrowsers": "包含瀏覽器",
     "includeBrowsersHint": "僅在開啟時掃描瀏覽器歷史記錄、Cookie 和已儲存登入清單",
-    "browsersOpenNotice": "請關閉 {browsers} 後重新掃描。瀏覽器開啟時，Disco 不會讀取其資料",
+    "browsersOpenTitle": "需要關閉 {browsers}",
+    "browsersOpenNotice": "瀏覽器開啟時，Disco 不會讀取其資料。請關閉後重新掃描",
     "toggleItem": "選擇或取消選擇{item}",
     "permission": {
       "badge": "存取受限",

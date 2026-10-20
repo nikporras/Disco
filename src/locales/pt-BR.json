@@ -151,7 +151,8 @@
     "timeRangeLabel": "Período da limpeza",
     "includeBrowsers": "Incluir navegadores",
     "includeBrowsersHint": "Histórico, cookies e listas de logins salvos dos navegadores só são verificados com isto ativado",
-    "browsersOpenNotice": "Feche {browsers} e verifique novamente. O Disco não lê dados do navegador enquanto ele está aberto",
+    "browsersOpenTitle": "Feche {browsers}",
+    "browsersOpenNotice": "O Disco não lê dados do navegador enquanto ele está aberto. Feche-o e verifique novamente",
     "toggleItem": "Alternar seleção de {item}",
     "permission": {
       "badge": "Acesso limitado",

@@ -151,7 +151,8 @@
     "timeRangeLabel": "清理时间范围",
     "includeBrowsers": "包含浏览器",
     "includeBrowsersHint": "仅在开启时扫描浏览器历史记录、Cookie 和已保存登录列表",
-    "browsersOpenNotice": "请关闭 {browsers} 后重新扫描。浏览器打开时，Disco 不会读取其数据",
+    "browsersOpenTitle": "需要关闭 {browsers}",
+    "browsersOpenNotice": "浏览器打开时，Disco 不会读取其数据。请关闭后重新扫描",
     "toggleItem": "选择或取消选择{item}",
     "permission": {
       "badge": "访问受限",

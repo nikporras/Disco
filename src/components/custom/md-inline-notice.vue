@@ -29,6 +29,7 @@ withDefaults(
       <strong v-if="title">{{ title }}</strong>
       <div class="md-inline-notice-message"><slot /></div>
     </div>
+    <div v-if="$slots.action" class="md-inline-notice-action"><slot name="action" /></div>
   </section>
 </template>
 
@@ -70,6 +71,13 @@ withDefaults(
   @apply text-muted-foreground;
   font-size: var(--font-content-body);
   line-height: 1.55;
+}
+
+.md-inline-notice-action {
+  display: flex;
+  flex: none;
+  align-self: center;
+  gap: 8px;
 }
 
 .md-inline-notice--info {

@@ -32,14 +32,10 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 - `fase-0-linea-base`
 - `fase-0b-superficie-minima` (incluye la anterior; integrarla sola deja `main` con ambas)
 
-**Falta probar a mano** (en el equipo de desarrollo, `C:\Dev` sin exclusión en Bitdefender)
-- Compilar con `pnpm tauri build --debug --no-bundle` y abrir `C:\Dev\Disco\target\debug\MangoDisk.exe`.
-- **Bitdefender**: que no marque ni el build ni el ejecutable al abrirlo. Si lo marca, anotar el nombre de la detección y la ruta.
-- **taskbar-layout**: que las métricas salgan solo como iconos en el área de notificación y que no se cree `%LOCALAPPDATA%\app.mangodisk.desktop\taskbar-layout`.
-- **Privacidad**:
-  - "Include browsers" empieza apagado, y sin él no aparecen navegadores.
-  - Con un navegador abierto sale el aviso de cerrarlo y no aparece ninguna carpeta `mangodisk-privacy-scan-*` en `%TEMP%`.
-  - Con el navegador cerrado, "Ver detalles" de cookies, contraseñas, autocompletado o búsquedas muestra solo el aviso de totales, y el historial sigue listando URL.
+**Probado a mano por el usuario (19-oct-2026)**: Bitdefender no marca ni el build ni el ejecutable (`C:\Dev` sin excluir); no se crea `taskbar-layout`; con Chrome abierto sale el aviso y los datos sensibles quedan en "Pending scan"; no hay `mangodisk-privacy-scan-*` en `%TEMP%`; el detalle de cookies muestra solo el total.
+
+**Falta probar a mano**
+- Aviso de navegadores abiertos rediseñado (advertencia con icono y botón "Scan again"): compilar con `pnpm tauri build --debug --no-bundle`, abrir `C:\Dev\Disco\target\debug\MangoDisk.exe` y, en Privacidad, activar "Include browsers" con un navegador abierto.
 - Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
 
 **Siguiente fase**: Fase 1 — Renombrado visible a Disco (identificador `io.github.nikporras.disco`, `check:identity` actualizado, `NOTICE`/`THIRD-PARTY-NOTICES`). Empieza solo tras aprobación y tras las pruebas manuales de arriba.

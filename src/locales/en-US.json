@@ -151,7 +151,8 @@
     "timeRangeLabel": "Cleanup time range",
     "includeBrowsers": "Include browsers",
     "includeBrowsersHint": "Browser history, cookies and saved-login lists are scanned only when this is on",
-    "browsersOpenNotice": "Close {browsers} and scan again. Disco does not read browser data while the browser is open",
+    "browsersOpenTitle": "{browsers} must be closed",
+    "browsersOpenNotice": "Disco does not read browser data while the browser is open. Close it, then scan again",
     "toggleItem": "Toggle {item}",
     "permission": {
       "badge": "Access limited",

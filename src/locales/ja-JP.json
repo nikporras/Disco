@@ -151,7 +151,8 @@
     "timeRangeLabel": "消去する期間",
     "includeBrowsers": "ブラウザーを含める",
     "includeBrowsersHint": "オンの場合のみ、ブラウザーの履歴、Cookie、保存済みログインの一覧をスキャンします",
-    "browsersOpenNotice": "{browsers} を閉じてから再スキャンしてください。ブラウザーが開いている間、Disco はそのデータを読み取りません",
+    "browsersOpenTitle": "{browsers} を閉じる必要があります",
+    "browsersOpenNotice": "ブラウザーが開いている間、Disco はそのデータを読み取りません。閉じてから再スキャンしてください",
     "toggleItem": "{item} を選択",
     "permission": {
       "badge": "アクセス制限あり",

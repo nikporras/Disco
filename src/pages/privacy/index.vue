@@ -11,6 +11,7 @@ import { useAiStore } from '@/stores/ai-store';
 import MdPageShell from '@/components/custom/md-page-shell.vue';
 import MdPermissionGuidance from '@/components/custom/md-permission-guidance.vue';
 import MdResultWorkspace from '@/components/custom/md-result-workspace.vue';
+import MdInlineNotice from '@/components/custom/md-inline-notice.vue';
 import MdSelectionActionBar from '@/components/custom/md-selection-action-bar.vue';
 import MdSelectionMode, { type MdSelectionModeOption } from '@/components/custom/md-selection-mode.vue';
 import MdSwitch from '@/components/custom/md-switch.vue';
@@ -383,9 +384,22 @@ watch(
     </MdOperationWorkspace>
 
     <MdResultWorkspace v-else-if="store.scanResult" class="privacy-results">
-      <template v-if="openBrowserNames.length" #notice>
-        <span role="status">{{ t('privacy.browsersOpenNotice', { browsers: openBrowserNames.join(', ') }) }}</span>
-      </template>
+      <MdInlineNotice
+        v-if="openBrowserNames.length"
+        class="privacy-browser-notice"
+        :icon-name="ICON_NAMES.warning"
+        :title="t('privacy.browsersOpenTitle', { browsers: openBrowserNames.join(', ') })"
+        tone="warning"
+        role="status"
+      >
+        {{ t('privacy.browsersOpenNotice') }}
+        <template #action>
+          <Button variant="outline" type="button" :disabled="busy" @click="store.scan()">
+            <MdIcon :name="ICON_NAMES.refresh" :size="17" />
+            {{ t('privacy.rescan') }}
+          </Button>
+        </template>
+      </MdInlineNotice>
       <div class="privacy-result-content">
         <MdPrivacyResultList
           :busy="busy"
@@ -447,6 +461,9 @@ watch(
 <style scoped>
 @reference "@assets/main.css";
 
+.privacy-browser-notice {
+  margin: 12px 12px 0;
+}
 .include-browsers {
   @apply text-muted-foreground;
   display: inline-flex;

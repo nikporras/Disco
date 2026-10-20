@@ -151,7 +151,8 @@
     "timeRangeLabel": "정리 기간",
     "includeBrowsers": "브라우저 포함",
     "includeBrowsersHint": "이 옵션을 켠 경우에만 브라우저 기록, 쿠키, 저장된 로그인 목록을 검사합니다",
-    "browsersOpenNotice": "{browsers}을(를) 닫고 다시 검사하세요. 브라우저가 열려 있는 동안 Disco는 브라우저 데이터를 읽지 않습니다",
+    "browsersOpenTitle": "{browsers}을(를) 닫아야 합니다",
+    "browsersOpenNotice": "브라우저가 열려 있는 동안 Disco는 브라우저 데이터를 읽지 않습니다. 닫은 후 다시 검사하세요",
     "toggleItem": "{item} 전환",
     "permission": {
       "badge": "접근 제한됨",

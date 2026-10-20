@@ -174,14 +174,20 @@ describe('privacy page cleanup flow', () => {
     wrapper.unmount();
   });
 
-  it('tells the user to close open browsers whose data was not read', () => {
+  it('warns prominently about open browsers and rescans from the notice', async () => {
     const store = usePrivacyStore();
     const result = structuredClone(scan);
     result.items = result.items.map(item => ({ ...item, capability: 'browserRunning' as const, itemCount: 0 }));
     store.scanResult = result;
     const wrapper = mountPage();
 
-    expect(wrapper.get('[role="status"]').text()).toContain('Close Firefox and scan again');
+    serviceMocks.scanWithProgress.mockResolvedValue(structuredClone(scan));
+    const notice = wrapper.get('.md-inline-notice--warning');
+    expect(notice.attributes('role')).toBe('status');
+    expect(notice.text()).toContain('Firefox must be closed');
+    expect(notice.text()).toContain('Disco does not read browser data while the browser is open');
+    await notice.get('.md-inline-notice-action button').trigger('click');
+    expect(serviceMocks.scanWithProgress).toHaveBeenCalledOnce();
     wrapper.unmount();
   });
 
