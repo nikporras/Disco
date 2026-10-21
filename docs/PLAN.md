@@ -262,12 +262,62 @@ Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de 
 ### Fase 9 — Extras y port progresivo
 - Windows Features/Updates, Oculus, locale `es-ES`, renombrado interno (Nivel 2) y port a Rust de las piezas del helper más estables.
 
-### Fase 10 — Sensores de hardware y monitor de sistema (pendiente de diseño)
+### Fase 10 — "Escanear todo" (después de BCU)
+- Botón **Escanear todo** que lanza en secuencia los escaneos existentes (limpieza, archivos grandes, restos de desinstalaciones, privacidad si el usuario lo tiene activado, etc.) y muestra una **pantalla de resumen** con cuánto se puede liberar por categoría y en total, con enlaces a cada página para revisar y actuar.
+- El de **duplicados es opcional** (casilla desactivada por defecto) porque es lento.
+- Solo lee: no borra nada. Cada borrado sigue pasando por la revisión, confirmación y verificación de su página.
+- Cancelable en cualquier momento; si un escaneo falla, el resumen lo indica sin frenar los demás.
+- **Prueba**: tests del orquestador (orden, cancelación, fallo parcial, duplicados opcional) y prueba manual del resumen.
+
+### Fase 11 — Drivers (después de BCU)
+Se divide en partes pequeñas: primero las que solo leen y después las que modifican el sistema. Cada parte es su propia rama y se aprueba por separado.
+
+Reglas comunes:
+- Solo APIs y herramientas de Windows: SetupAPI/CfgMgr32, `pnputil`, Windows Update Agent y Restaurar sistema. **Nunca** bases de datos de drivers de terceros ni descargas desde webs.
+- Todo lo que modifica pasa por el broker de elevación con capacidades fijas, con dry-run, confirmación explícita, verificación posterior e historial.
+- **Nunca** se borra ni se sustituye el driver en uso sin un flujo explícito de actualización o reversión.
+- **S3**: las pruebas que modifican drivers se hacen solo en VM o Windows Sandbox, con dispositivos virtuales o drivers de prueba propios.
+- **DriverStore Explorer** (`lostindark/DriverStoreExplorer`) sirve como referencia de comportamiento. Antes de mirar o usar su código hay que verificar su licencia: si fuera GPL-2.0 *solo v2*, no es compatible con GPL-3.0-only y solo podría usarse como referencia, sin copiar código.
+
+**11a — Inventario de drivers (solo lectura)**
+- Listar drivers instalados: dispositivo, clase, fabricante, proveedor, versión, fecha, INF (`oemNN.inf`), si está **firmado** (y por quién) y si está **en uso** por algún dispositivo presente.
+- Fuente: SetupAPI/CfgMgr32 (o `Win32_PnPSignedDriver` como contraste). Sin elevación.
+- **Prueba**: tests de mapeo con datos de ejemplo y comparación manual con el Administrador de dispositivos.
+
+**11b — Dispositivos con problemas (solo lectura)**
+- Detectar dispositivos sin driver o con error (el triángulo amarillo del Administrador de dispositivos) mediante el código de problema (`CM_PROB_*`; p. ej. código 28 = sin driver, 10 = no puede iniciarse, 43 = el dispositivo informó de un fallo).
+- Explicar cada código en lenguaje claro, con qué suele significar y qué puede hacer el usuario (actualizar desde Windows Update en 11d, reinstalar, revisar la conexión…).
+- **Prueba**: tabla de códigos con tests y prueba en VM con un dispositivo deshabilitado o sin driver.
+
+**11c — Limpieza del DriverStore**
+- Lectura primero: encontrar paquetes del DriverStore (`FileRepository`) que son versiones antiguas de un driver y no los usa ningún dispositivo, y mostrar cuánto ocupan.
+- Borrado después, en un paso aparte: con confirmación, mediante `pnputil /delete-driver oemNN.inf` **sin `/force`**. Se vuelve a comprobar justo antes que el paquete sigue sin usarse; el driver en uso o el único paquete de un dispositivo nunca se proponen.
+- **Prueba**: tests de selección (en uso, única versión, varias versiones) y borrado real solo en VM.
+
+**11d — Buscar actualizaciones (solo lectura)**
+- Solo con Windows Update Agent (`IUpdateSearcher`, criterio `Type='Driver'`), mostrando versión actual frente a ofrecida, fecha y fabricante.
+- **Prueba**: tests del mapeo de resultados y búsqueda manual en VM.
+
+**11e — Instalar actualizaciones**
+- Instalar solo las actualizaciones encontradas en 11d, elegidas por el usuario y con confirmación explícita.
+- Antes, **crear un punto de restauración**. Si Protección del sistema está desactivada o falla, avisar y no seguir sin una segunda confirmación explícita.
+- Verificar después la versión instalada y el estado del dispositivo, y registrarlo en el historial.
+- **Prueba**: solo en VM (S3).
+
+**11f — Respaldo y restauración**
+- Exportar todos los drivers de terceros a una carpeta elegida (equivalente a `pnputil /export-driver * <carpeta>`), con un índice legible de lo exportado.
+- Restaurar desde esa carpeta (`pnputil /add-driver <carpeta>\*.inf /subdirs /install`), con confirmación y verificación.
+- **Prueba**: exportación real en el equipo de desarrollo (solo lee los drivers); restauración solo en VM.
+
+**11g — Revertir un driver**
+- Volver a la versión anterior de un driver si la nueva da problemas, cuando Windows conserva la anterior (equivalente a "Revertir al controlador anterior"; `DiRollbackDriver`), con punto de restauración previo, confirmación y verificación.
+- **Prueba**: solo en VM, con dos versiones de un driver de prueba.
+### Fase 12 — Sensores de hardware y monitor de sistema (pendiente de diseño)
 - Recuperar la temperatura de CPU y otros sensores, probablemente con LibreHardwareMonitor (revisar antes su licencia, MPL-2.0, y cómo carga su driver). Partir del código conservado tras el feature `hardware-sensors` o sustituir PawnIO.
-- Siempre opcional y con instalación explícita del usuario; nunca en el build por defecto hasta tener la firma de código de la Fase 11.
+- Siempre opcional y con instalación explícita del usuario; nunca en el build por defecto hasta tener la firma de código de la Fase 13.
 - **Rediseñar el monitor de red** (la opción C de la investigación de `network-traffic.json`): replantear el monitor heredado de MangoDisk dentro de funciones tipo Administrador de tareas (procesos, CPU, memoria, disco, red). Cualquier dato por proceso o por conexión debe ser opcional, mostrarse solo en memoria y no guardarse en disco sin una decisión explícita de privacidad.
 
-### Fase 11 — Distribución
+### Fase 13 — Distribución
 - **Firma de código** de todos los ejecutables que se publiquen (`Disco.exe`, instalador NSIS, helper .NET y, si existe, el helper privilegiado), por ejemplo con **SignPath Foundation** (firma gratuita para proyectos open source, con compilación en CI verificable). `build-privileged.mjs` ya exige Authenticode válido en release; extender la misma comprobación al resto.
 - Empaquetado del runtime .NET 10 del helper (dependiente del runtime o autocontenido).
 - Decidir si Disco tendrá servidor de actualizaciones propio (clave y endpoints nuevos; nunca los de MangoDisk).
@@ -275,7 +325,7 @@ Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de 
 
 ## 9. Riesgos y decisiones pendientes
 
-- **Runtime .NET** (decidido: **.NET 10, dependiente del runtime** por ahora; el empaquetado se decide en la fase de distribución, Fase 11). Motivo: todos los proyectos de BCU (`UninstallTools`, `KlocTools`, `ObjectListView`, helpers) heredan `net8.0-windows10.0.18362.0` de `source/Directory.Build.props`; ninguno es .NET Framework 4.x (eso era la rama `legacy-4.x`). En una copia aparte, `UninstallTools` compila con `net10.0-windows10.0.18362.0` sin errores, mientras que con `net48` ni siquiera pasan sus dependencias (`IsExternalInit`, `GeneratedRegex`, `Rune`, diseñadores WinForms) y después vendrían WinRT (`Windows.Management.Deployment`), `System.Text.Json`, `DistinctBy`, `Enum.GetValues<T>`… Usar 4.8 obligaría a mantener un fork retroportado de BCU. En la Fase 0 se encontró una única incompatibilidad en tiempo de ejecución con .NET 10 (Windows Features vacías por una enumeración WMI no rebobinable), corregible con un parche de una línea.
+- **Runtime .NET** (decidido: **.NET 10, dependiente del runtime** por ahora; el empaquetado se decide en la fase de distribución, Fase 13). Motivo: todos los proyectos de BCU (`UninstallTools`, `KlocTools`, `ObjectListView`, helpers) heredan `net8.0-windows10.0.18362.0` de `source/Directory.Build.props`; ninguno es .NET Framework 4.x (eso era la rama `legacy-4.x`). En una copia aparte, `UninstallTools` compila con `net10.0-windows10.0.18362.0` sin errores, mientras que con `net48` ni siquiera pasan sus dependencias (`IsExternalInit`, `GeneratedRegex`, `Rune`, diseñadores WinForms) y después vendrían WinRT (`Windows.Management.Deployment`), `System.Text.Json`, `DistinctBy`, `Enum.GetValues<T>`… Usar 4.8 obligaría a mantener un fork retroportado de BCU. En la Fase 0 se encontró una única incompatibilidad en tiempo de ejecución con .NET 10 (Windows Features vacías por una enumeración WMI no rebobinable), corregible con un parche de una línea.
 - **Identificador**: `io.github.nikporras.disco` (decidido). Pendiente: si habrá servidor de actualizaciones propio.
 - **Parches a BCU**: si hace falta cambiar `UninstallTools` (p. ej. quitar diálogos), mantenerlos mínimos, marcados y, si es posible, enviarlos *upstream*.
 - **Anotado para más adelante** (sin fase asignada; revisar al tocar Privacidad):
