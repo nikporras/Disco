@@ -380,6 +380,7 @@ Reglas comunes:
 ### Fase 13 — Distribución
 - **Firma de código** de todos los ejecutables que se publiquen (`Disco.exe`, instalador NSIS, helper .NET y, si existe, el helper privilegiado), por ejemplo con **SignPath Foundation** (firma gratuita para proyectos open source, con compilación en CI verificable). `build-privileged.mjs` ya exige Authenticode válido en release; extender la misma comprobación al resto.
 - Empaquetado del runtime .NET 10 del helper (dependiente del runtime o autocontenido).
+- **Cómo se obtiene BCU para compilar en GitHub Actions o en otro PC.** Hoy `pnpm bcu:build` usa una copia local limpia (`../BCU`, `DISCO_BCU_SOURCE` o `third_party/bcu`) fijada por `helpers/bcu/bcu.lock.json`. Opciones: submódulo `third_party/bcu`, que quedó pendiente de permiso; que el script clone el commit fijado con verificación del hash; o un artefacto de build cacheado. El build de CI debe fallar si el commit no coincide.
 - Decidir si Disco tendrá servidor de actualizaciones propio (clave y endpoints nuevos; nunca los de MangoDisk).
 - Enviar los binarios firmados a los fabricantes de antivirus (Bitdefender, Microsoft Defender) si siguen apareciendo falsos positivos.
 

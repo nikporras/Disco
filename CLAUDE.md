@@ -22,32 +22,29 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 
 ## Estado actual
 
-*Actualizado: 21-oct-2026, al terminar la Fase 2.*
+*Actualizado: 21-oct-2026, al integrar la Fase 2 en `main`.*
 
 **Fases terminadas e integradas en `main`**
-- Fase 0 — Línea base y corte con mangodisk.app. BCU apunta a .NET 8; el helper usará .NET 10 con un parche WMI de una línea.
+- Fase 0 — Línea base y corte con mangodisk.app.
 - Fase 0b — Superficie mínima:
   - sin barra de tareas ni inyección en Explorer;
   - PawnIO detrás de `hardware-sensors`;
   - navegadores fuera del escaneo de privacidad por defecto, solo totales para cookies/contraseñas/autocompletado/búsquedas, sin copias a `%TEMP%` y con un aviso destacado si el navegador está abierto;
   - tráfico de red solo en memoria.
 - Fase 1 — Renombrado visible a Disco: identificador `io.github.nikporras.disco`, `Disco.exe`, CLI `disco`, icono provisional, README/NOTICE y `check:identity` con S2. Los crates siguen llamándose `mangodisk-*` (Nivel 2).
+- Fase 2 — Esqueleto del helper .NET: `disco-bcu-helper` (.NET 10, `asInvoker`, protocolo JSONL v1) con 4 parches mínimos a BCU. BCU no está en el repo: se usa una copia limpia externa fijada en `helpers/bcu/bcu.lock.json` (`C:\Dev\BCU`). Cómo obtenerla en CI u otro PC queda para la Fase 13.
 
-Todo lo probó a mano el usuario entre el 19 y el 21 de octubre: Bitdefender no marca la app, no se crean `taskbar-layout` ni `network-traffic.json`, Privacidad se comporta como se espera y la app muestra "Disco" con datos en `%APPDATA%\io.github.nikporras.disco`.
+Todo lo probó a mano el usuario entre el 19 y el 21 de octubre: Bitdefender no marca la app, Privacidad y el tráfico de red se comportan como se espera, la app muestra "Disco", y `pnpm bcu:build` y `pnpm bcu:test` pasan (1.280 aplicaciones con Steam, Store y Windows Features).
 
-**Fases terminadas, pendientes de prueba y aprobación**
-- Fase 2 — Esqueleto del helper .NET: `disco-bcu-helper` (.NET 10, `asInvoker`, protocolo JSONL v1) con 4 parches mínimos a BCU. BCU **no** está en el repo: se usa una copia externa fijada en `helpers/bcu/bcu.lock.json`, porque el submódulo quedó bloqueado por permisos. Detalle en `docs/PLAN.md` y `helpers/bcu/README.md`.
+**Ramas pendientes de integrar en `main`**: ninguna.
 
-**Ramas pendientes de integrar en `main`**: `fase-2-helper-bcu`.
+**Falta probar a mano**: nada de las fases cerradas. Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
 
-**Falta probar a mano** (Fase 2)
-- `pnpm bcu:build` y `pnpm bcu:test` (inventario de solo lectura; tarda uno o dos minutos).
-- Opcional: `src-tauri\resources\bcu\disco-bcu-helper.exe inventory` y revisar el JSON.
-- Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
+**Pendiente para la Fase 3**: el log de `StoreAppHelper` junto a su ejecutable, el .NET 10 Desktop Runtime y el inventario lento (más de 40 s), que necesita segundo plano, cancelación y caché.
 
 **Entorno**: Bitdefender tiene exclusiones para `C:\Dev\Disco`, `.cargo`, `.rustup` y pnpm, porque bloqueaba `dist`, `target` y las herramientas. Si vuelven a fallar los builds con "acceso denegado" o `LNK1104`, revisar el historial de Bitdefender.
 
-**Siguiente fase**: Fase 3 — Cliente Rust e inventario combinado. Empieza solo tras aprobar la Fase 2.
+**Siguiente fase**: Fase 3 — Cliente Rust e inventario combinado. No empezar hasta que el usuario lo pida.
 
 ## Comandos
 
