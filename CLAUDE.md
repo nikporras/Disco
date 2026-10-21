@@ -22,25 +22,25 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 
 ## Estado actual
 
-*Actualizado: 19-oct-2026, al cerrar la Fase 0b.*
+*Actualizado: 21-oct-2026, al integrar las fases 0 y 0b en `main`.*
 
-**Fases terminadas**
-- Fase 0 — Línea base y corte con mangodisk.app (rama `fase-0-linea-base`, commit `1433d13`). BCU apunta a .NET 8; el helper usará .NET 10 con un parche WMI de una línea.
-- Fase 0b — Superficie mínima (rama `fase-0b-superficie-minima`, commits `81367de` y `bcaf42b`, creada encima de la Fase 0): sin barra de tareas ni inyección en Explorer, PawnIO detrás de `hardware-sensors`, navegadores fuera del escaneo de privacidad por defecto, solo totales para cookies/contraseñas/autocompletado/búsquedas y sin copias a `%TEMP%`.
+**Fases terminadas e integradas en `main`**
+- Fase 0 — Línea base y corte con mangodisk.app (`fase-0-linea-base`). BCU apunta a .NET 8; el helper usará .NET 10 con un parche WMI de una línea.
+- Fase 0b — Superficie mínima (`fase-0b-superficie-minima`):
+  - sin barra de tareas ni inyección en Explorer;
+  - PawnIO detrás de `hardware-sensors`;
+  - navegadores fuera del escaneo de privacidad por defecto, solo totales para cookies/contraseñas/autocompletado/búsquedas, sin copias a `%TEMP%` y con un aviso destacado si el navegador está abierto;
+  - tráfico de red solo en memoria.
 
-**Ramas pendientes de integrar en `main`** (esperan aprobación del usuario)
-- `fase-0-linea-base`
-- `fase-0b-superficie-minima` (incluye la anterior; integrarla sola deja `main` con ambas)
+  Todo lo probó a mano el usuario entre el 19 y el 21 de octubre: Bitdefender ya no marca el ejecutable, no se crean `taskbar-layout` ni `network-traffic.json`, y Privacidad se comporta como se espera.
 
-**Probado a mano por el usuario (19-oct-2026)**: Bitdefender no marca ni el build ni el ejecutable (`C:\Dev` sin excluir); no se crea `taskbar-layout`; con Chrome abierto sale el aviso y los datos sensibles quedan en "Pending scan"; no hay `mangodisk-privacy-scan-*` en `%TEMP%`; el detalle de cookies muestra solo el total.
+**Ramas pendientes de integrar en `main`**: ninguna.
 
-El aviso rediseñado de navegadores abiertos (commit `5d539a9`) está aprobado.
+**Falta probar a mano**: nada de las fases cerradas. Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
 
-**Falta probar a mano**
-- Tráfico de red solo en memoria: quitar la exclusión de Bitdefender para `%APPDATA%\app.mangodisk.desktop`, compilar con `pnpm tauri build --debug --no-bundle` y abrir `C:\Dev\Disco\target\debug\MangoDisk.exe`. Al arrancar deben desaparecer `network-traffic.json` y `network-traffic.lock` y no volver a crearse. El panel de red debe seguir mostrando los totales, y "Reset" debe ponerlos a cero.
-- Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
+**Entorno**: Bitdefender tiene exclusiones para `C:\Dev\Disco`, `.cargo`, `.rustup` y pnpm, porque bloqueaba `dist`, `target` y las herramientas. Si vuelven a fallar los builds con "acceso denegado" o `LNK1104`, revisar el historial de Bitdefender.
 
-**Siguiente fase**: Fase 1 — Renombrado visible a Disco (identificador `io.github.nikporras.disco`, `check:identity` actualizado, `NOTICE`/`THIRD-PARTY-NOTICES`). Empieza solo tras aprobación y tras las pruebas manuales de arriba.
+**Fase en curso**: Fase 1 — Renombrado visible a Disco (rama `fase-1-renombrado`).
 
 ## Comandos
 
