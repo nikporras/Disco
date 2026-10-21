@@ -36,3 +36,7 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 *.sw?
+
+# Local inventory exports (personal program lists)
+inventario*.json
+*.inventory.json
