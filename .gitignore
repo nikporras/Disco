@@ -8,6 +8,9 @@
 /target/
 /src-tauri/gen/
 /src-tauri/resources/privileged/
+/src-tauri/resources/bcu/
+/helpers/**/bin/
+/helpers/**/obj/
 /output/
 *.tsbuildinfo
 

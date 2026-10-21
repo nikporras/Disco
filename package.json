@@ -46,6 +46,8 @@
     "tauri:build": "tauri build",
     "tauri:build:check": "tauri build --no-bundle",
     "tauri:build:linux": "bash scripts/build-linux-bundles.sh",
+    "bcu:build": "node scripts/build-bcu-helper.mjs",
+    "bcu:test": "node scripts/test-bcu-helper.mjs",
     "cli:build": "cargo build --release -p mangodisk-cli",
     "cli:test": "cargo test -p mangodisk-cli",
     "baseline:cleanup": "cargo run --manifest-path src-tauri/xtask/Cargo.toml --release -- --cleanup-baseline",

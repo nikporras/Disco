@@ -20,15 +20,19 @@ logo are not used as Disco's brand.
 
 -------------------------------------------------------------------------------
 Bulk Crap Uninstaller (BCU)
-https://github.com/Klocman/Bulk-Crap-Uninstaller
+https://github.com/BCUninstaller/Bulk-Crap-Uninstaller
 Copyright 2017 Marcin Szeniak
 License: Apache License, Version 2.0
 
-Disco plans to use BCU libraries (UninstallTools, KlocTools and related
-projects) through a separate helper. When BCU code is included, its original
-copyright headers and NOTICE are preserved, files modified by Disco are marked
-as such, and the Apache License 2.0 text is distributed with it. Apache-2.0
-code is combined with Disco under GPL-3.0-only as permitted by both licenses.
+Disco's helper (helpers/disco-bcu-helper) is built against BCU libraries
+(UninstallTools, KlocTools, ObjectListView) and ships BCU's read-only query
+helpers (SteamHelper, StoreAppHelper, OculusHelper, ScriptHelper), from the
+commit pinned in helpers/bcu/bcu.lock.json. BCU sources are not stored in this
+repository. Disco applies a few minimal patches at build time (listed in
+helpers/bcu/README.md); each modified file keeps BCU's copyright header and is
+marked "Modified by Disco". Builds ship BCU's license and NOTICE as
+BCU-LICENSE.txt and BCU-NOTICE.txt. Apache-2.0 code is combined with Disco under
+GPL-3.0-only as permitted by both licenses.
 
 -------------------------------------------------------------------------------
 Other components

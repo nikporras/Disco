@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/BCUninstaller/Bulk-Crap-Uninstaller.git",
+  "commit": "30da609384c98ba6e35c6530129541ea4ff3970a",
+  "license": "Apache-2.0",
+  "projects": [
+    "UninstallTools",
+    "KlocTools",
+    "ObjectListView",
+    "SteamHelper",
+    "StoreAppHelper",
+    "OculusHelper",
+    "ScriptHelper"
+  ]
+}

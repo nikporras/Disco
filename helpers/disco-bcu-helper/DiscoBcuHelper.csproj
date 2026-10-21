@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Disco's read-only BCU helper. Built by scripts/build-bcu-helper.mjs, which
+    passes BcuSourceRoot: a patched copy of the pinned BCU sources under target/.
+    Never reference the pristine BCU checkout directly.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows10.0.18362.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <!-- UninstallTools uses Windows Forms types even for headless scans. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>disco-bcu-helper</AssemblyName>
+    <RootNamespace>Disco.BcuHelper</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Deterministic>true</Deterministic>
+    <Product>Disco</Product>
+    <Description>Read-only Bulk Crap Uninstaller inventory helper for Disco</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(BcuSourceRoot)\source\UninstallTools\UninstallTools.csproj" />
+  </ItemGroup>
+
+  <Target Name="RequireBcuSourceRoot" BeforeTargets="ResolveProjectReferences">
+    <Error Condition="'$(BcuSourceRoot)' == ''" Text="BcuSourceRoot is not set. Build with node scripts/build-bcu-helper.mjs." />
+  </Target>
+</Project>

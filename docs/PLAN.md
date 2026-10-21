@@ -243,6 +243,16 @@ Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de 
 - Parche mínimo y marcado a BCU: `Rewindable = true` en `WmiQueries.GetWindowsFeatures` (ver resultados de la Fase 0). Test: el inventario incluye Windows Features.
 - **Prueba**: tests del helper (salida válida, sin diálogos, códigos de salida) y ejecución manual.
 
+**Hecho (21-oct-2026, rama `fase-2-helper-bcu`):**
+- **Cambio respecto al plan: sin submódulo.** Añadir `third_party/bcu` como submódulo fue bloqueado por los permisos de la sesión, por integrar código de terceros. En su lugar, `helpers/bcu/bcu.lock.json` fija el repositorio (`BCUninstaller/Bulk-Crap-Uninstaller`) y el commit `30da6093`. `scripts/build-bcu-helper.mjs` lee una copia limpia de fuera (`DISCO_BCU_SOURCE`, `third_party/bcu` o `../BCU`), comprueba que está en ese commit y sin cambios, y la copia a `target/bcu-build` antes de parchear y compilar. Si el usuario lo aprueba, se puede añadir el submódulo después sin cambiar el script.
+- Parches mínimos y marcados (`helpers/bcu/patches.mjs`): .NET 10, manifiesto `asInvoker` para los auxiliares de BCU, WMI rebobinable (Windows Features) y `PremadeDialogs.HeadlessErrorHandler`. Este último era necesario porque BCU abre diálogos modales de error durante el escaneo y bloquearía el helper.
+- Helper `disco-bcu-helper` (.NET 10, `asInvoker`): comandos `inventory` y `version`, protocolo JSONL v1 (`progress`, `warning`, `inventory`, `error`) y códigos de salida 0/1/2. Incluye los auxiliares de solo lectura de BCU (Steam, Store, Oculus, Script).
+- `pnpm bcu:build` y `pnpm bcu:test`. En el equipo de desarrollo: 1.281 programas en ~64-138 s, con 158 de la Store, 41 de Steam y 17 Windows Features, sin avisos ni diálogos.
+- Pendiente para la Fase 3:
+  - `StoreAppHelper` escribe `StoreAppHelper.log` junto a su ejecutable; hay que redirigirlo o tolerar que la carpeta de instalación sea de solo lectura.
+  - El helper necesita el .NET 10 Desktop Runtime (empaquetado en la Fase 13).
+  - Como el inventario tarda un minuto o más, Rust debe ejecutarlo en segundo plano, con cancelación y caché.
+
 ### Fase 3 — Cliente Rust e inventario combinado
 - Contrato en `mangodisk-platform` (Windows) que lanza el helper con ruta fija, timeout, límite de tamaño y validación de esquema; `cfg(windows)`.
 - El catálogo añade las apps **no registradas/portables** y el estado del **certificado** como evidencia visible (no como autorización de borrado). Si el helper falta o falla → catálogo actual de MangoDisk (fallback seguro, registrado en log).

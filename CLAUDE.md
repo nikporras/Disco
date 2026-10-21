@@ -22,7 +22,7 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 
 ## Estado actual
 
-*Actualizado: 21-oct-2026, al integrar la Fase 1 en `main`.*
+*Actualizado: 21-oct-2026, al terminar la Fase 2.*
 
 **Fases terminadas e integradas en `main`**
 - Fase 0 — Línea base y corte con mangodisk.app. BCU apunta a .NET 8; el helper usará .NET 10 con un parche WMI de una línea.
@@ -35,13 +35,19 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 
 Todo lo probó a mano el usuario entre el 19 y el 21 de octubre: Bitdefender no marca la app, no se crean `taskbar-layout` ni `network-traffic.json`, Privacidad se comporta como se espera y la app muestra "Disco" con datos en `%APPDATA%\io.github.nikporras.disco`.
 
-**Ramas pendientes de integrar en `main`**: ninguna.
+**Fases terminadas, pendientes de prueba y aprobación**
+- Fase 2 — Esqueleto del helper .NET: `disco-bcu-helper` (.NET 10, `asInvoker`, protocolo JSONL v1) con 4 parches mínimos a BCU. BCU **no** está en el repo: se usa una copia externa fijada en `helpers/bcu/bcu.lock.json`, porque el submódulo quedó bloqueado por permisos. Detalle en `docs/PLAN.md` y `helpers/bcu/README.md`.
 
-**Falta probar a mano**: nada de las fases cerradas. Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
+**Ramas pendientes de integrar en `main`**: `fase-2-helper-bcu`.
+
+**Falta probar a mano** (Fase 2)
+- `pnpm bcu:build` y `pnpm bcu:test` (inventario de solo lectura; tarda uno o dos minutos).
+- Opcional: `src-tauri\resources\bcu\disco-bcu-helper.exe inventory` y revisar el JSON.
+- Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
 
 **Entorno**: Bitdefender tiene exclusiones para `C:\Dev\Disco`, `.cargo`, `.rustup` y pnpm, porque bloqueaba `dist`, `target` y las herramientas. Si vuelven a fallar los builds con "acceso denegado" o `LNK1104`, revisar el historial de Bitdefender.
 
-**Fase en curso**: Fase 2 — Esqueleto del helper .NET (solo lectura), rama `fase-2-helper-bcu`.
+**Siguiente fase**: Fase 3 — Cliente Rust e inventario combinado. Empieza solo tras aprobar la Fase 2.
 
 ## Comandos
 
@@ -60,6 +66,8 @@ pnpm tauri build                   # instalador NSIS (ejecuta pnpm build antes)
 ```
 
 Sensores de hardware (PawnIO, desactivados por defecto): `DISCO_HARDWARE_SENSORS=1` para que `scripts/build-privileged.mjs` compile el helper, y `--features hardware-sensors` en el build de la app.
+
+Helper BCU (Windows): `pnpm bcu:build` compila `helpers/disco-bcu-helper` contra una copia parcheada en `target/bcu-build` de la copia limpia de BCU (`DISCO_BCU_SOURCE`, `third_party/bcu` o `../BCU`, que debe estar en el commit de `helpers/bcu/bcu.lock.json`) y lo deja en `src-tauri/resources/bcu`. `pnpm bcu:test` comprueba el protocolo con un inventario real de solo lectura.
 
 BCU (fuente de referencia, no se modifica). `dotnet build` falla por la referencia COM de `UninstallTools`; usa el MSBuild de Visual Studio:
 
