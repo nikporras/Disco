@@ -12,6 +12,7 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 - **Explicar en español** al usuario: planes, resúmenes y descripciones. Los comentarios de código, logs, nombres y tests siguen en inglés, como exige `AGENTS.md`.
 - La seguridad no se negocia: dry-run, preflight, rutas protegidas, *reparse points*, confirmación explícita, verificación posterior e historial en todo flujo destructivo. BCU **propone** candidatos; el Core de Rust **decide y ejecuta** los borrados.
 - Las búsquedas de restos se comparan siempre contra **todos** los programas instalados, no solo los que se desinstalan (requisito S1).
+- Huérfanos y entradas `SimpleDelete` de BCU (requisito S4): nunca preseleccionados; antes de ofrecerlos, comprobar que no son carpeta, madre ni hija de ningún programa registrado ni de rutas protegidas (`Program Files\dotnet`, `WindowsApps`, NVIDIA, Steam, Xbox…); riesgo crítico con cuarentena obligatoria. Disco nunca ejecuta su `del /F /S /Q`.
 - Disco nunca se actualiza a MangoDisk ni llama a servicios de `mangodisk.app` (requisito S2).
 - Las pruebas destructivas (desinstalar, borrar restos) usan solo programas de prueba pequeños creados para el test, en una VM o Windows Sandbox, nunca en el equipo de desarrollo (requisito S3).
 - Cada fase en su propia rama `fase-N-<tema>` desde `main`; commit al terminar con un resumen de qué probar. No integrar en `main` sin aprobación.
@@ -40,7 +41,7 @@ Todo lo probó a mano el usuario entre el 19 y el 21 de octubre: Bitdefender no 
 
 **Falta probar a mano**: nada de las fases cerradas. Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
 
-**Pendiente para la Fase 3**: el log de `StoreAppHelper` junto a su ejecutable, el .NET 10 Desktop Runtime y el inventario lento (más de 40 s), que necesita segundo plano, cancelación y caché.
+**Pendiente para la Fase 3**: requisitos de la revisión del inventario en `docs/PLAN.md` (Fase 3 y S4): UTF-8 estricto, rutas del helper resueltas a la carpeta de recursos real, filtros (sistema, actualizaciones, SDK/runtime), tweaks fuera del catálogo, duplicados agrupados, huérfanos nunca preseleccionados, log de `StoreAppHelper`, .NET 10 Desktop Runtime e inventario en segundo plano con caché.
 
 **Entorno**: Bitdefender tiene exclusiones para `C:\Dev\Disco`, `.cargo`, `.rustup` y pnpm, porque bloqueaba `dist`, `target` y las herramientas. Si vuelven a fallar los builds con "acceso denegado" o `LNK1104`, revisar el historial de Bitdefender.
 

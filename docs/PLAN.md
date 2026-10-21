@@ -194,6 +194,17 @@ Flujo de trabajo: cada fase en su propia rama (`fase-N-<tema>`, creada desde `ma
 - **S1 — Restos contra todas las apps.** El helper debe pasar a `JunkManager.FindJunk` (y a `ProgramFilesOrphans.Setup`) **la lista completa de programas instalados**, nunca solo los que se van a desinstalar. Así funcionan las comprobaciones de "carpeta usada por otra app" y de nombres parecidos. BCU-console tiene este fallo (`FindJunk(apps, apps, …)`); el helper no lo debe repetir. Además, Rust vuelve a comprobar cada candidato contra su propio inventario antes de borrar. Hace falta un test que lo demuestre: dos apps de prueba que comparten carpeta → la carpeta compartida no puede salir como resto con confianza alta.
 - **S2 — Sin actualizaciones ni servicios de MangoDisk.** Disco nunca debe descargar ni instalar una actualización de MangoDisk ni enviar datos a `mangodisk.app`. Se desactiva en la Fase 0 y `check:identity` lo vigila desde la Fase 1.
 - **S3 — Solo programas de prueba propios.** Las pruebas de desinstalación y limpieza de restos usan exclusivamente programas pequeños creados para el test (instaladores NSIS/Inno/MSI mínimos generados por un script del repo), instalados en VM o Windows Sandbox. Nunca se desinstala software real.
+- **S4 — Huérfanos y desinstaladores `SimpleDelete`.** Al revisar el inventario real del 21-oct-2026, BCU marcó como huérfanas carpetas en uso cuya "desinstalación" es `del /F /S /Q` de toda la carpeta, por ejemplo:
+  - `C:\Program Files\dotnet` (7,4 GB), y también `dotnet\sdk\8.0.426` y `10.0.108`;
+  - `C:\Program Files\NVIDIA Corporation\NVIDIA app`;
+  - carpetas de juegos de Xbox (Grounded, Supermarket Simulator).
+
+  Por eso:
+  - Los huérfanos **nunca** se seleccionan por defecto ni con "selección inteligente".
+  - Antes de ofrecer borrar una carpeta huérfana, el Core comprueba que no es la carpeta, ni la madre ni una hija, de **ningún** programa registrado (S1), ni una ruta protegida. Son rutas protegidas, como mínimo: `Program Files\dotnet`, `WindowsApps`, `Windows`, `ProgramData\Microsoft`, carpetas de NVIDIA, AMD e Intel, bibliotecas de Steam, Xbox (`XboxGames`, `ModifiableWindowsApps`), EA, Epic, GOG y Ubisoft, y las raíces de unidad. Si coincide, el candidato se descarta con su motivo visible.
+  - Borrar un huérfano es riesgo **crítico** en la Fase 4b: la copia es obligatoria (cuarentena) y la confirmación es reforzada, mostrando la ruta, el tamaño y el motivo de BCU.
+  - Disco **nunca** ejecuta el `UninstallString`/`QuietUninstallString` de BCU para entradas `SimpleDelete` (`del /F /S /Q …`) ni para huérfanos. Esos borrados los decide y los hace el Core, siempre a la cuarentena.
+  - Test obligatorio: inventario de ejemplo con `dotnet`, la app de NVIDIA, un juego de Xbox y una carpeta compartida. Ninguno puede salir como candidato a borrar.
 
 ### Fase 0 — Línea base y corte con mangodisk.app
 - Verificar que Disco compila y pasa `pnpm check` en Windows tal cual.
@@ -256,6 +267,15 @@ Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de 
 ### Fase 3 — Cliente Rust e inventario combinado
 - Contrato en `mangodisk-platform` (Windows) que lanza el helper con ruta fija, timeout, límite de tamaño y validación de esquema; `cfg(windows)`.
 - El catálogo añade las apps **no registradas/portables** y el estado del **certificado** como evidencia visible (no como autorización de borrado). Si el helper falta o falla → catálogo actual de MangoDisk (fallback seguro, registrado en log).
+- Requisitos de la revisión del inventario real (21-oct-2026):
+  - **Codificación**: el helper escribe UTF-8 sin BOM (comprobado: "God of War Ragnarök" y "español (México)" llegan bien). Los nombres rotos (`Ragnar├Âk`) solo aparecen al leer la salida en la consola de PowerShell con la página de códigos 850. El cliente Rust lee los bytes de stdout como UTF-8 estricto (`String::from_utf8`, sin pérdidas); una línea no válida es un error de protocolo, nunca se repara. Test con nombres no ASCII.
+  - **Rutas del helper**: los `uninstallString` de `StoreAppHelper`, `ScriptHelper`, `SteamHelper` y `OculusHelper` contienen la ruta absoluta de la carpeta desde donde se ejecutó el helper (hoy `C:\Dev\Disco\src-tauri\resources\bcu`). Rust resuelve la carpeta de recursos real con la API de Tauri y lanza el helper desde allí. Antes de usar un `uninstallString` que apunte a un auxiliar de BCU, comprueba que esa ruta está **dentro** de la carpeta de recursos instalada; si no, la entrada no se puede desinstalar.
+  - **Filtros**: componentes del sistema (`isSystemComponent`), actualizaciones (`isUpdate`) y paquetes de SDK/runtime (p. ej. `Microsoft .NET … SDK/Runtime`, Visual C++ Redistributable, Windows SDK) ocultos por defecto, con un filtro para mostrarlos.
+  - **Tweaks de ScriptHelper**: los `Tweak-*` (Mouse Acceleration, Showing Desktop under This PC…) no son aplicaciones. Van fuera del catálogo de programas, se filtran por tipo (`PowerShell` o el origen `ScriptHelper`) y quedan, si acaso, para una categoría propia más adelante.
+  - **Duplicados**: agrupar o marcar entradas con el mismo nombre y editor (VulkanRT ×3, PowerToys ×2, Dropbox ×2, EA app ×2), mostrando lo que las diferencia (versión, arquitectura, origen o ruta) en vez de repetirlas sin explicación.
+  - **Huérfanos** (S4): se muestran como evidencia, nunca seleccionados por defecto ni con "selección inteligente".
+  - **StoreAppHelper** escribe `StoreAppHelper.log` junto a su ejecutable: redirigirlo o tolerar una carpeta de instalación de solo lectura.
+  - **Inventario lento** (40-140 s): en segundo plano, cancelable y con caché.
 - **Prueba**: tests de parseo/versión en Core, prueba manual de la página de desinstalación.
 
 ### Fase 4 — Escaneo de restos en Windows (dry-run)
@@ -269,7 +289,7 @@ Una sola capa en el Core de Rust que usan **todas** las acciones que modifican e
    - **Bajo**: caché, temporales, papelera.
    - **Medio**: archivos del usuario, historial de navegadores, programas de inicio.
    - **Alto**: desinstalaciones, restos en el registro, servicios, tareas programadas, drivers, mantenimiento del sistema.
-   - **Crítico**: drivers de pantalla, red, almacenamiento, chipset y USB; claves del registro del sistema (`HKLM\SYSTEM`, `HKLM\SOFTWARE\Microsoft\Windows`…).
+   - **Crítico**: drivers de pantalla, red, almacenamiento, chipset y USB; claves del registro del sistema (`HKLM\SYSTEM`, `HKLM\SOFTWARE\Microsoft\Windows`…); borrar carpetas **huérfanas** (S4). En crítico, la copia de cuarentena es obligatoria, no solo propuesta, y la confirmación es reforzada (ruta, tamaño y motivo).
 2. **Antes de una acción de riesgo medio o superior**, Disco pregunta "¿Quieres hacer una copia antes?" y ofrece solo las copias que correspondan a esa acción:
    - punto de restauración de Windows;
    - copia del registro afectado, exportando a `.reg` solo las claves que se van a tocar;
@@ -290,7 +310,7 @@ Una sola capa en el Core de Rust que usan **todas** las acciones que modifican e
 - **Prueba**: tests de la clasificación de riesgo y de la política (preguntar, siempre o solo alto), del índice, de la cuarentena con restauración y de la limpieza por antigüedad. Restauración de registro y punto de restauración solo en VM (S3).
 
 ### Fase 5 — Borrado de restos
-- Rust borra archivos/carpetas con las primitivas existentes y claves de registro con una primitiva nueva; antes, el sistema de copias de la Fase 4b (riesgo alto: copia `.reg` de las claves y cuarentena de los archivos, marcadas por defecto); preflight, confirmación, historial, verificación. Selección por defecto solo `VeryGood`.
+- Rust borra archivos/carpetas con las primitivas existentes y claves de registro con una primitiva nueva; antes, el sistema de copias de la Fase 4b (riesgo alto: copia `.reg` de las claves y cuarentena de los archivos, marcadas por defecto); preflight, confirmación, historial, verificación. Selección por defecto solo `VeryGood`. Los huérfanos y las entradas `SimpleDelete` siguen S4: nunca preseleccionados, comprobados contra todos los programas y las rutas protegidas, riesgo crítico, y nunca se ejecuta su `del /F /S /Q`.
 - **Prueba**: tests de seguridad (reparse points, rutas protegidas, clave cambiada) y prueba en VM con un programa de prueba propio (S3), incluido el caso de carpeta compartida (S1).
 
 ### Fase 6 — Desinstalación silenciosa
