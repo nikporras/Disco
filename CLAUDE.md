@@ -22,33 +22,26 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 
 ## Estado actual
 
-*Actualizado: 21-oct-2026, al terminar la Fase 1.*
+*Actualizado: 21-oct-2026, al integrar la Fase 1 en `main`.*
 
 **Fases terminadas e integradas en `main`**
-- Fase 0 — Línea base y corte con mangodisk.app (`fase-0-linea-base`). BCU apunta a .NET 8; el helper usará .NET 10 con un parche WMI de una línea.
-- Fase 0b — Superficie mínima (`fase-0b-superficie-minima`):
+- Fase 0 — Línea base y corte con mangodisk.app. BCU apunta a .NET 8; el helper usará .NET 10 con un parche WMI de una línea.
+- Fase 0b — Superficie mínima:
   - sin barra de tareas ni inyección en Explorer;
   - PawnIO detrás de `hardware-sensors`;
   - navegadores fuera del escaneo de privacidad por defecto, solo totales para cookies/contraseñas/autocompletado/búsquedas, sin copias a `%TEMP%` y con un aviso destacado si el navegador está abierto;
   - tráfico de red solo en memoria.
+- Fase 1 — Renombrado visible a Disco: identificador `io.github.nikporras.disco`, `Disco.exe`, CLI `disco`, icono provisional, README/NOTICE y `check:identity` con S2. Los crates siguen llamándose `mangodisk-*` (Nivel 2).
 
-  Todo lo probó a mano el usuario entre el 19 y el 21 de octubre: Bitdefender ya no marca el ejecutable, no se crean `taskbar-layout` ni `network-traffic.json`, y Privacidad se comporta como se espera.
+Todo lo probó a mano el usuario entre el 19 y el 21 de octubre: Bitdefender no marca la app, no se crean `taskbar-layout` ni `network-traffic.json`, Privacidad se comporta como se espera y la app muestra "Disco" con datos en `%APPDATA%\io.github.nikporras.disco`.
 
-**Fases terminadas, pendientes de prueba y aprobación**
-- Fase 1 — Renombrado visible a Disco: identidad, icono provisional, CLI `disco`, README/NOTICE y `check:identity` con S2. Detalle en `docs/PLAN.md`.
+**Ramas pendientes de integrar en `main`**: ninguna.
 
-**Ramas pendientes de integrar en `main`**: `fase-1-renombrado`.
-
-**Falta probar a mano** (Fase 1)
-- Compilar con `pnpm tauri build --debug --no-bundle` y abrir `C:\Dev\Disco\target\debug\Disco.exe`.
-- La ventana, la barra de título, el área de notificación y "Acerca de" dicen "Disco" con el icono provisional, y "Sitio web" y "Repositorio" abren `github.com/nikporras/Disco`.
-- La app empieza con ajustes por defecto y crea `%APPDATA%\io.github.nikporras.disco`.
-- Opcional: `pnpm cli:build` y `target\release\disco.exe clean`.
-- Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
+**Falta probar a mano**: nada de las fases cerradas. Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
 
 **Entorno**: Bitdefender tiene exclusiones para `C:\Dev\Disco`, `.cargo`, `.rustup` y pnpm, porque bloqueaba `dist`, `target` y las herramientas. Si vuelven a fallar los builds con "acceso denegado" o `LNK1104`, revisar el historial de Bitdefender.
 
-**Siguiente fase**: Fase 2 — Esqueleto del helper .NET (solo lectura). Empieza solo tras aprobar la Fase 1.
+**Fase en curso**: Fase 2 — Esqueleto del helper .NET (solo lectura), rama `fase-2-helper-bcu`.
 
 ## Comandos
 
