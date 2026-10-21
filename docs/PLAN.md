@@ -242,8 +242,35 @@ Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de 
 - `junk.scan` y `orphans.scan` en el helper; `applications/leftovers` acepta candidatos de Windows con confianza y motivos; UI de revisión elemento a elemento. **Nada se borra todavía.**
 - **Prueba**: tests de mapeo y de que las rutas protegidas se descartan; comparación manual con la GUI de BCU en una app de prueba.
 
+### Fase 4b — Sistema común de copias de seguridad
+Una sola capa en el Core de Rust que usan **todas** las acciones que modifican el sistema: limpieza, privacidad, inicio, mantenimiento, restos, desinstalación y drivers. Se toma como referencia lo que hace BCU (punto de restauración antes de desinstalar y copia del registro antes de borrar claves). Va antes de las Fases 5 y 6 para que nazcan usándola.
+
+1. **Nivel de riesgo** declarado por cada acción (tipo estable en el Core, no inferido de textos):
+   - **Bajo**: caché, temporales, papelera.
+   - **Medio**: archivos del usuario, historial de navegadores, programas de inicio.
+   - **Alto**: desinstalaciones, restos en el registro, servicios, tareas programadas, drivers, mantenimiento del sistema.
+   - **Crítico**: drivers de pantalla, red, almacenamiento, chipset y USB; claves del registro del sistema (`HKLM\SYSTEM`, `HKLM\SOFTWARE\Microsoft\Windows`…).
+2. **Antes de una acción de riesgo medio o superior**, Disco pregunta "¿Quieres hacer una copia antes?" y ofrece solo las copias que correspondan a esa acción:
+   - punto de restauración de Windows;
+   - copia del registro afectado, exportando a `.reg` solo las claves que se van a tocar;
+   - **cuarentena propia de Disco**: mover los archivos en vez de borrarlos, para poder deshacer;
+   - copia de drivers con `pnputil /export-driver` del paquete concreto.
+
+   En riesgo alto y crítico, las copias vienen marcadas por defecto. Si una copia marcada falla, la acción no sigue sin una confirmación explícita.
+3. **Página "Copias de seguridad"**:
+   - lista de todas las copias con fecha, acción que las originó, tipo y tamaño;
+   - botones para restaurar y para borrar cada una;
+   - limpieza automática de copias antiguas, configurable (por defecto, 30 días). Los puntos de restauración los gestiona Windows y no se borran desde Disco.
+4. **Ajustes**: preguntar siempre (por defecto), hacer copia siempre sin preguntar, o solo en riesgo alto y crítico.
+5. Si **Protección del sistema** está desactivada o no se puede crear el punto de restauración (Windows limita uno cada 24 h por defecto), avisar claramente y ofrecer las demás copias. Disco no activa Protección del sistema por su cuenta.
+6. Seguridad:
+   - **Restaurar es también una acción con riesgo**: lleva preflight (comprobar que el destino no ha cambiado ni está ocupado), confirmación, verificación e historial.
+   - La cuarentena y las copias `.reg` viven en una carpeta propia con permisos de usuario, sin seguir *reparse points*, y con un índice versionado.
+   - Importar un `.reg` usa solo el archivo creado por Disco y verificado con su huella (nunca uno elegido a mano), mediante el broker de elevación si hace falta HKLM.
+- **Prueba**: tests de la clasificación de riesgo y de la política (preguntar, siempre o solo alto), del índice, de la cuarentena con restauración y de la limpieza por antigüedad. Restauración de registro y punto de restauración solo en VM (S3).
+
 ### Fase 5 — Borrado de restos
-- Rust borra archivos/carpetas con las primitivas existentes y claves de registro con una primitiva nueva que exporta `.reg` antes; preflight, confirmación, historial, verificación. Selección por defecto solo `VeryGood`.
+- Rust borra archivos/carpetas con las primitivas existentes y claves de registro con una primitiva nueva; antes, el sistema de copias de la Fase 4b (riesgo alto: copia `.reg` de las claves y cuarentena de los archivos, marcadas por defecto); preflight, confirmación, historial, verificación. Selección por defecto solo `VeryGood`.
 - **Prueba**: tests de seguridad (reparse points, rutas protegidas, clave cambiada) y prueba en VM con un programa de prueba propio (S3), incluido el caso de carpeta compartida (S1).
 
 ### Fase 6 — Desinstalación silenciosa
@@ -272,6 +299,11 @@ Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de 
 ### Fase 11 — Drivers (después de BCU)
 Se divide en partes pequeñas: primero las que solo leen y después las que modifican el sistema. Cada parte es su propia rama y se aprueba por separado.
 
+Organización de la interfaz:
+- **Página principal de Drivers**: actualizaciones (11d), dispositivos con problemas (11b) y apps del fabricante (11d-bis), con el inventario (11a) como lista consultable.
+- **Sección «Avanzado»**, menos visible y con una advertencia clara al entrar: limpiar el DriverStore (11c), borrar paquetes y revertir drivers (11g).
+- Todas las acciones que modifican usan el sistema de copias de la Fase 4b. Instalar, borrar o revertir drivers es riesgo **alto**, y **crítico** si afecta a pantalla, red, almacenamiento, chipset o USB. Se ofrece el punto de restauración y la copia del paquete concreto con `pnputil /export-driver`, marcados por defecto.
+
 Reglas comunes:
 - Solo APIs y herramientas de Windows: SetupAPI/CfgMgr32, `pnputil`, Windows Update Agent y Restaurar sistema. **Nunca** bases de datos de drivers de terceros ni descargas desde webs.
 - Todo lo que modifica pasa por el broker de elevación con capacidades fijas, con dry-run, confirmación explícita, verificación posterior e historial.
@@ -298,9 +330,16 @@ Reglas comunes:
 - Solo con Windows Update Agent (`IUpdateSearcher`, criterio `Type='Driver'`), mostrando versión actual frente a ofrecida, fecha y fabricante.
 - **Prueba**: tests del mapeo de resultados y búsqueda manual en VM.
 
+**11d-bis — Herramientas del fabricante**
+- Detectar el hardware principal y la versión de su driver con el inventario de 11a: GPU NVIDIA, AMD o Intel, y Wi-Fi y Bluetooth Intel.
+- Si la app oficial del fabricante está instalada (NVIDIA App, AMD Software: Adrenalin Edition, Intel Driver & Support Assistant), mostrar un botón para abrirla. La app se detecta con el inventario de programas de Disco, no por rutas fijas.
+- Si no está instalada, ofrecer instalarla con `winget` (identificador oficial del paquete), mostrando antes el comando y el origen y pidiendo confirmación explícita. Si `winget` no está disponible, solo se informa.
+- **No** usar APIs no documentadas de los fabricantes para buscar versiones; las actualizaciones las gestiona la app oficial o Windows Update (11d).
+- **Prueba**: tests de detección con datos de ejemplo de los tres fabricantes; la instalación con `winget` solo en VM (S3).
+
 **11e — Instalar actualizaciones**
 - Instalar solo las actualizaciones encontradas en 11d, elegidas por el usuario y con confirmación explícita.
-- Antes, **crear un punto de restauración**. Si Protección del sistema está desactivada o falla, avisar y no seguir sin una segunda confirmación explícita.
+- Antes, copias de la Fase 4b: punto de restauración y copia del driver actual, marcadas por defecto. Si Protección del sistema está desactivada o falla, avisar y ofrecer las demás copias; no seguir sin confirmación explícita.
 - Verificar después la versión instalada y el estado del dispositivo, y registrarlo en el historial.
 - **Prueba**: solo en VM (S3).
 
