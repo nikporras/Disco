@@ -38,5 +38,6 @@ Thumbs.db
 *.sw?
 
 # Local inventory exports (personal program lists)
+inventario.json
 inventario*.json
 *.inventory.json

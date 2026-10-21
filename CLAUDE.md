@@ -23,7 +23,7 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 
 ## Estado actual
 
-*Actualizado: 21-oct-2026, al integrar la Fase 2 en `main`.*
+*Actualizado: 21-oct-2026, al cerrar la sesión. Resumen de la sesión en `docs/SESSION-LOG.md`.*
 
 **Fases terminadas e integradas en `main`**
 - Fase 0 — Línea base y corte con mangodisk.app.
@@ -41,11 +41,13 @@ Todo lo probó a mano el usuario entre el 19 y el 21 de octubre: Bitdefender no 
 
 **Falta probar a mano**: nada de las fases cerradas. Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
 
+**Plan actualizado**: requisitos de la Fase 3 y regla S4 de huérfanos añadidos a `docs/PLAN.md` tras revisar el inventario real.
+
 **Pendiente para la Fase 3**: requisitos de la revisión del inventario en `docs/PLAN.md` (Fase 3 y S4): UTF-8 estricto, rutas del helper resueltas a la carpeta de recursos real, filtros (sistema, actualizaciones, SDK/runtime), tweaks fuera del catálogo, duplicados agrupados, huérfanos nunca preseleccionados, log de `StoreAppHelper`, .NET 10 Desktop Runtime e inventario en segundo plano con caché.
 
 **Entorno**: Bitdefender tiene exclusiones para `C:\Dev\Disco`, `.cargo`, `.rustup` y pnpm, porque bloqueaba `dist`, `target` y las herramientas. Si vuelven a fallar los builds con "acceso denegado" o `LNK1104`, revisar el historial de Bitdefender.
 
-**Siguiente fase**: Fase 3 — Cliente Rust e inventario combinado. No empezar hasta que el usuario lo pida.
+**Siguiente paso**: empezar la Fase 3 — cliente Rust del helper BCU e inventario combinado (rama `fase-3-cliente-bcu`), cuando el usuario lo pida.
 
 ## Comandos
 
