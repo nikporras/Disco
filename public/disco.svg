@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Disco logo</title>
+  <desc id="desc">Placeholder Disco mark: a disc with a center hole and a highlighted sector.</desc>
+  <defs>
+    <linearGradient id="disc-fill" x1="0.15" y1="0.1" x2="0.85" y2="0.9">
+      <stop offset="0" stop-color="#3B82F6" />
+      <stop offset="1" stop-color="#1E3A8A" />
+    </linearGradient>
+  </defs>
+  <path id="disc-body" fill="url(#disc-fill)" fill-rule="evenodd" d="M512 64a448 448 0 1 0 0 896a448 448 0 1 0 0-896zm0 368a80 80 0 1 1 0 160a80 80 0 1 1 0-160z" />
+  <path id="disc-sector" fill="#BFDBFE" fill-opacity="0.9" d="M512 112A400 400 0 0 1 912 512H640A128 128 0 0 0 512 384Z" />
+</svg>

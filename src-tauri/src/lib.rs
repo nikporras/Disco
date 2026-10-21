@@ -383,7 +383,7 @@ pub fn run() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("MangoDisk failed to start");
+        .expect("Disco failed to start");
     app.run(move |_app, _event| {
         if let tauri::RunEvent::ExitRequested { code, .. } = &_event {
             log::info!(

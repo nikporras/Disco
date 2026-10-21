@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "MangoDisk",
+  "productName": "Disco",
   "version": "1.1.9",
-  "identifier": "app.mangodisk.desktop",
-  "mainBinaryName": "MangoDisk",
+  "identifier": "io.github.nikporras.disco",
+  "mainBinaryName": "Disco",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://127.0.0.1:1420",
@@ -20,7 +20,7 @@
       {
         "label": "main",
         "create": false,
-        "title": "MangoDisk",
+        "title": "Disco",
         "width": 1280,
         "height": 800,
         "minWidth": 1000,
@@ -38,9 +38,9 @@
   },
   "bundle": {
     "active": true,
-    "publisher": "MangoDisk",
-    "homepage": "https://mangodisk.app",
-    "copyright": "Copyright © 2026 mangodisk.app",
+    "publisher": "Disco",
+    "homepage": "https://github.com/nikporras/Disco",
+    "copyright": "Copyright © 2026 Disco contributors. Based on MangoDisk by harry0703.",
     "license": "GPL-3.0-only",
     "createUpdaterArtifacts": false,
     "targets": ["nsis", "appimage"],

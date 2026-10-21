@@ -46,7 +46,7 @@ pnpm tauri build --bundles deb,appimage --no-sign \
   --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
 image_dir="$PWD/target/release/bundle/appimage"
-appdir="$image_dir/MangoDisk.AppDir"
+appdir="$image_dir/Disco.AppDir"
 gio_modules="$appdir/usr/lib/gio/modules"
 plugin="$XDG_CACHE_HOME/tauri/linuxdeploy-plugin-appimage.AppImage"
 bundle=("$image_dir"/*.AppImage)
@@ -67,7 +67,7 @@ install -m 0755 scripts/appimage-apprun.sh "$appdir/AppRun"
   cd "$image_dir"
   ARCH="$arch" "$plugin" --appimage-extract-and-run --appdir="$appdir"
 )
-mv "$image_dir/MangoDisk-$arch.AppImage" "${bundle[0]}"
+mv "$image_dir/Disco-$arch.AppImage" "${bundle[0]}"
 restore_apprun
 trap - EXIT
 

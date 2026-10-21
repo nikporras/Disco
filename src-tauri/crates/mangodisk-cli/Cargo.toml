@@ -1,12 +1,12 @@
 [package]
 name = "mangodisk-cli"
 version.workspace = true
-description = "MangoDisk command-line automation adapter"
+description = "Disco command-line automation adapter"
 edition.workspace = true
 rust-version.workspace = true
 
 [[bin]]
-name = "mangodisk"
+name = "disco"
 path = "src/main.rs"
 
 [dependencies]

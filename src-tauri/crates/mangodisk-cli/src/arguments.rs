@@ -2,17 +2,17 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Debug, Parser)]
 #[command(
-    name = "mangodisk",
+    name = "disco",
     version,
     about = "Safely inspect and reclaim disk space",
-    long_about = "MangoDisk scans cleanup candidates without changing files by default.\n\
-Use `mangodisk clean --apply` to review and apply the same recommendations as the desktop app.",
+    long_about = "Disco scans cleanup candidates without changing files by default.\n\
+Use `disco clean --apply` to review and apply the same recommendations as the desktop app.",
     after_help = "Examples:\n  \
-  mangodisk clean\n  \
-  mangodisk clean --apply\n  \
-  mangodisk clean --apply --selection all\n  \
-  mangodisk clean --apply --dry-run\n  \
-  mangodisk clean --format json --no-progress"
+  disco clean\n  \
+  disco clean --apply\n  \
+  disco clean --apply --selection all\n  \
+  disco clean --apply --dry-run\n  \
+  disco clean --format json --no-progress"
 )]
 pub struct Cli {
     /// Select the output format. JSON formats never contain terminal colors.
@@ -57,10 +57,10 @@ pub enum Command {
 
 #[derive(Debug, Args)]
 #[command(after_help = "Examples:\n  \
-    mangodisk clean\n  \
-    mangodisk clean --apply\n  \
-    mangodisk clean --apply --selection all\n  \
-    mangodisk clean --apply --dry-run --yes")]
+    disco clean\n  \
+    disco clean --apply\n  \
+    disco clean --apply --selection all\n  \
+    disco clean --apply --dry-run --yes")]
 pub struct CleanArgs {
     /// Apply the selected cleanup rules after the read-only scan.
     #[arg(long)]
@@ -105,7 +105,7 @@ mod tests {
     #[test]
     fn clean_defaults_to_a_read_only_recommended_scan() {
         let parsed =
-            Cli::try_parse_from(["mangodisk", "clean"]).expect("the documented command must parse");
+            Cli::try_parse_from(["disco", "clean"]).expect("the documented command must parse");
 
         let Command::Clean(arguments) = parsed.command;
         assert!(!arguments.apply);
@@ -117,7 +117,7 @@ mod tests {
     #[test]
     fn clean_accepts_an_explicit_all_selection_dry_run() {
         let parsed = Cli::try_parse_from([
-            "mangodisk",
+            "disco",
             "--format",
             "json",
             "clean",
@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn clean_rejects_a_selection_without_apply() {
-        let error = Cli::try_parse_from(["mangodisk", "clean", "--selection", "all"])
+        let error = Cli::try_parse_from(["disco", "clean", "--selection", "all"])
             .expect_err("selection must require --apply");
 
         assert!(error.to_string().contains("--apply"));
@@ -148,7 +148,7 @@ mod tests {
     #[test]
     fn incomplete_read_only_workflows_are_not_public_commands() {
         for command in ["applications", "storage", "history"] {
-            let error = Cli::try_parse_from(["mangodisk", command])
+            let error = Cli::try_parse_from(["disco", command])
                 .expect_err("removed workflows must not remain public commands");
 
             assert!(error.to_string().contains("unrecognized subcommand"));

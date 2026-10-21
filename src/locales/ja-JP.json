@@ -59,7 +59,7 @@
       "freeRateLimited": "リクエストが多すぎます。しばらくしてから再試行してください",
       "freeConcurrent": "他の解説を生成中です。しばらくお待ちください",
       "freeClockSkew": "システム時刻を確認して再試行してください",
-      "freeSignatureInvalid": "MangoDisk を更新するかカスタムサービスをご利用ください",
+      "freeSignatureInvalid": "Disco を更新するかカスタムサービスをご利用ください",
       "freeRequestExists": "リクエストが重複しているか、無効になっています。新しく解説を開始してください",
       "freeArchiveUnavailable": "無料解説を処理できませんでした。しばらくしてから再試行してください",
       "disabled": "AI 機能はオフになっています"
@@ -69,7 +69,7 @@
     "completed": "解説が完了しました",
     "explainItem": "AI 解説：{name}",
     "serviceMode": "AI サービス",
-    "freeService": "MangoDisk 無料サービス",
+    "freeService": "Disco 無料サービス",
     "customService": "カスタムサービス",
     "customDescription": "自分の API Key で OpenAI 互換サービスに接続",
     "advancedSettings": "詳細設定",
@@ -121,7 +121,7 @@
   "fullDiskAccessGuidance": {
     "summary": "アクセス権限を確認",
     "title": "フルディスクアクセスを確認",
-    "instructions": "システム設定で MangoDisk のフルディスクアクセスを確認し、再スキャンしてください。有効な場合はログで原因を確認できます",
+    "instructions": "システム設定で Disco のフルディスクアクセスを確認し、再スキャンしてください。有効な場合はログで原因を確認できます",
     "skip": "今はしない",
     "openSettings": "フルディスクアクセス設定を開く"
   },
@@ -310,7 +310,7 @@
     "scanningDescription": "システムを変更せず、コンポーネントの状態だけを確認します",
     "scanFailedTitle": "メンテナンスの確認を完了できませんでした",
     "scanFailedDescription": "システムは変更されていません。もう一度確認し、問題が続く場合は設定画面でログを確認してください",
-    "authorizationPrompt": "このメンテナンスを実行するには、MangoDisk に管理者権限が必要です",
+    "authorizationPrompt": "このメンテナンスを実行するには、Disco に管理者権限が必要です",
     "rescan": "再確認",
     "filterCategory": "メンテナンスのカテゴリを絞り込む",
     "executeOne": "実行",
@@ -1584,7 +1584,7 @@
       "disableNamedGroup": "{name} を無効化",
       "futureOnly": "自動起動をオフにしても、現在実行中のプログラムやサービスは停止しません",
       "requiresElevation": "管理者権限が必要です",
-      "authorizationPromptMacos": "スタートアップ設定を変更するには、MangoDisk に管理者権限が必要です",
+      "authorizationPromptMacos": "スタートアップ設定を変更するには、Disco に管理者権限が必要です",
       "confirm": "確認",
       "applying": "適用中…",
       "refreshFailedResult": "操作は完了しましたが、一覧を更新できませんでした。再スキャンしてください",
@@ -1635,7 +1635,7 @@
         "find": "ログイン項目の設定で、アプリ名または開発元名を探してください",
         "loginItem": "ログイン時に開く：アプリを選択して「−」で削除",
         "backgroundItem": "バックグラウンド動作：スイッチをオフにします。古い記録は残ることがあります",
-        "rescan": "操作後に MangoDisk に戻り、再スキャンしてください",
+        "rescan": "操作後に Disco に戻り、再スキャンしてください",
         "settingsPath": "macOS 12：「ユーザとグループ」で「ログイン項目」をクリック。新しい OS では「ログイン項目」を検索できます"
       }
     },
@@ -1644,7 +1644,7 @@
       "description": "説明",
       "version": "バージョン",
       "systemManaged": "macOS が管理する項目です。ログイン項目で変更できます",
-      "viewOnly": "この項目は表示のみ可能で、MangoDisk から直接変更することはできません",
+      "viewOnly": "この項目は表示のみ可能で、Disco から直接変更することはできません",
       "protectedService": "このサービスは Windows によって保護されているため、ここでは変更できません",
       "openLoginItemsSettings": "ログイン項目設定を開く",
       "source": "起動タイプ",
@@ -1697,8 +1697,8 @@
     "invalidInput": "無効なリクエスト。選択した項目を確認して再試行してください",
     "operationCancelled": "操作がキャンセルされました",
     "operationFailed": "操作を完了できませんでした。再試行してください",
-    "permissionDenied": "MangoDisk はこの操作を完了する権限がありません",
-    "persistenceFailed": "MangoDisk は操作データを保存できませんでした。再試行してください",
+    "permissionDenied": "Disco はこの操作を完了する権限がありません",
+    "persistenceFailed": "Disco は操作データを保存できませんでした。再試行してください",
     "taskJoinFailed": "バックグラウンドタスクが予期せず停止しました。再試行してください"
   },
   "errorTitles": {
@@ -1829,7 +1829,7 @@
       "sizePending": "管理者権限が必要です",
       "action": "管理者として確認",
       "checking": "確認中…",
-      "restartHint": "MangoDisk を管理者として起動し直し、再スキャンしてください"
+      "restartHint": "Disco を管理者として起動し直し、再スキャンしてください"
     },
     "categoryItemCount": "{count} 項目 | {count} 項目",
     "categoryTitles": {
@@ -2165,7 +2165,7 @@
     "categoryTitle": "アプリの残存ファイル",
     "scanning": "削除されたアプリのデータを確認しています…",
     "scanHint": "インストールされていないアプリに明確に関連付けられたデータのみが表示されます。スキャンは何も変更しません",
-    "accessLimitedDescription": "「システム設定」→「プライバシーとセキュリティ」で MangoDisk にほかのアプリデータへのアクセスを許可してから、もう一度スキャンしてください",
+    "accessLimitedDescription": "「システム設定」→「プライバシーとセキュリティ」で Disco にほかのアプリデータへのアクセスを許可してから、もう一度スキャンしてください",
     "incompleteDescription": "間違いを避けるため、残存データは表示されません。後で再試行してください",
     "emptyTitle": "確認済みのアプリ残存データは見つかりませんでした",
     "emptyDescription": "安全に残存データと特定できるアプリデータは見つかりませんでした",
@@ -2235,13 +2235,13 @@
     "incompleteTitle": "インストール済みアプリを完全に読み取ることができませんでした",
     "incompleteDescription": "間違いを避けるため、アンインストールは利用できません。後でもう一度試してください",
     "viewOnlyTitle": "このシステムではアンインストールは利用できません",
-    "viewOnlyDescription": "インストール済みアプリを確認できますが、MangoDisk ではここでアンインストールできません",
+    "viewOnlyDescription": "インストール済みアプリを確認できますが、Disco ではここでアンインストールできません",
     "applicationRunning": "アプリを終了",
     "closeBeforeUninstallTitle": "アプリを終了してからアンインストール",
     "closeBeforeUninstallDescription": "アンインストール前に終了する実行中のアプリを選択します",
     "requiresElevation": "管理者権限",
     "requiresElevationDescriptionMacos": "このアプリをアンインストールするときに、macOS が管理者の承認を求めます。承認をキャンセルしてもアプリは削除されません",
-    "authorizationPromptMacos": "MangoDisk がこのアプリを削除するには管理者権限が必要です",
+    "authorizationPromptMacos": "Disco がこのアプリを削除するには管理者権限が必要です",
     "readyForReview": "準備完了",
     "viewOnly": "アンインストール不可",
     "orphanedRegistration": "無効な登録",
@@ -2464,7 +2464,7 @@
       "recoveryRequired": "アンインストールが正常に完了しませんでした。再試行する前にアプリを確認または復元してください",
       "nativeInstallerFailed": "アンインストーラーが処理を完了できませんでした",
       "nativeInstallerFailedAfterRemoval": "インストール情報は削除されましたが、アンインストーラーがエラーを報告しました",
-      "verificationFailed": "MangoDisk が結果を確認できませんでした",
+      "verificationFailed": "Disco が結果を確認できませんでした",
       "removalUnconfirmed": "アンインストーラーは終了しましたが、削除を確認できませんでした。アプリ一覧を更新して確認してください"
     }
   },
@@ -2478,7 +2478,7 @@
     "supportSection": "サポート",
     "aboutSection": "概要",
     "languageTitle": "言語",
-    "languageDescription": "MangoDisk で使用する言語を選択してください",
+    "languageDescription": "Disco で使用する言語を選択してください",
     "languageNames": {
       "zhCN": "简体中文",
       "enUS": "English",
@@ -2499,7 +2499,7 @@
     "themeDark": "ダーク",
     "themeSystem": "システムに従う",
     "fullDiskAccessTitle": "フルディスクアクセス",
-    "fullDiskAccessDescription": "MangoDisk が保護されたシステムやアプリのデータをスキャンできるようにし、より詳しいクリーンアップ結果を表示します",
+    "fullDiskAccessDescription": "Disco が保護されたシステムやアプリのデータをスキャンできるようにし、より詳しいクリーンアップ結果を表示します",
     "openPrivacySettings": "システム設定",
     "permissionStatus": {
       "notChecked": "未チェック",
@@ -2507,7 +2507,7 @@
       "limited": "アクセス制限あり"
     },
     "feedbackTitle": "フィードバック",
-    "feedbackDescription": "MangoDiskをより良くするために、ぜひご意見をお寄せください",
+    "feedbackDescription": "Discoをより良くするために、ぜひご意見をお寄せください",
     "feedbackAction": "フィードバックを送信",
     "feedbackDialog": {
       "title": "フィードバックを送信",
@@ -2534,7 +2534,7 @@
       "submit": "送信",
       "submitting": "送信中…",
       "successTitle": "フィードバックを送信しました",
-      "successDescription": "ご協力ありがとうございます。MangoDisk の改善に活用します",
+      "successDescription": "ご協力ありがとうございます。Disco の改善に活用します",
       "referenceId": "受付番号：{id}",
       "copyReference": "受付番号をコピー",
       "referenceCopied": "受付番号をコピーしました",
@@ -2550,7 +2550,7 @@
       }
     },
     "diagnosticLogsTitle": "診断ログ",
-    "diagnosticLogsDescription": "トラブルシューティング用の MangoDisk 実行ログを表示します",
+    "diagnosticLogsDescription": "トラブルシューティング用の Disco 実行ログを表示します",
     "openLogFolderAction": "フォルダーを開く",
     "softwareUpdateTitle": "ソフトウェアアップデート",
     "updateCheckAction": "アップデートを確認",
@@ -2568,7 +2568,7 @@
     "updateCheckFailedTitle": "アップデートを確認できませんでした",
     "updateCheckUnknownError": "アップデートサービスで不明なエラーが発生しました",
     "versionUnknown": "読み込み中…",
-    "aboutTitle": "MangoDisk について",
+    "aboutTitle": "Disco について",
     "aboutDescription": "ディスククリーンアップとストレージ分析のための、軽量で安全なオープンソースのクロスプラットフォームツール",
     "projectLinksLabel": "プロジェクトリンク",
     "websiteAction": "公式ウェブサイト",
@@ -2579,24 +2579,24 @@
   "updates": {
     "noticeAvailable": "更新があります",
     "noticeRetry": "更新画面を再度開く",
-    "availableTitle": "MangoDisk {version} が利用可能です",
+    "availableTitle": "Disco {version} が利用可能です",
     "currentVersionDescription": "現在のバージョン {version}",
     "checkDescription": "新しいバージョンを確認",
     "checkingDescription": "アップデートサービスに接続中…",
-    "upToDateDescription": "MangoDisk {version} は最新です",
+    "upToDateDescription": "Disco {version} は最新です",
     "releaseNotes": "新機能",
     "noReleaseNotes": "このアップデートには改善点と修正が含まれています",
     "downloadUpdate": "アップデートをダウンロード",
     "downloadPortable": "ポータブル版をダウンロード",
-    "portableDescription": "ポータブル版は手動で更新する必要があります。新しいファイルをダウンロードし、MangoDisk を終了してから現在の実行ファイルと置き換えてください",
+    "portableDescription": "ポータブル版は手動で更新する必要があります。新しいファイルをダウンロードし、Disco を終了してから現在の実行ファイルと置き換えてください",
     "continueInBackground": "バックグラウンドで続行",
-    "downloadedTitle": "MangoDisk {version} が準備完了",
-    "installedTitle": "MangoDisk {version} がインストールされました",
-    "downloadComplete": "ダウンロード完了 · インストール後に MangoDisk が再起動します",
+    "downloadedTitle": "Disco {version} が準備完了",
+    "installedTitle": "Disco {version} がインストールされました",
+    "downloadComplete": "ダウンロード完了 · インストール後に Disco が再起動します",
     "installAndRestart": "インストールして再起動",
-    "restartRequired": "インストール完了 · アップデートを完了するには MangoDisk を再起動してください",
+    "restartRequired": "インストール完了 · アップデートを完了するには Disco を再起動してください",
     "restartNow": "今すぐ再起動",
-    "restarting": "MangoDisk を再起動中…",
+    "restarting": "Disco を再起動中…",
     "notNow": "今はしない",
     "later": "後で",
     "retry": "再試行",
@@ -2606,7 +2606,7 @@
     "downloadFailed": "ダウンロードに失敗しました",
     "manualDownloadFailed": "ダウンロードページを開けません",
     "installFailed": "インストールに失敗しました",
-    "restartFailed": "MangoDisk を再起動できません",
+    "restartFailed": "Disco を再起動できません",
     "navigationNotice": "新しいバージョンが利用可能です"
   },
   "loading": {
@@ -2640,7 +2640,7 @@
     "validating": "選択した項目を検証中…",
     "finalizing": "クリーンアップ結果を最終処理中…",
     "cleaningSafetyHint": "選択した項目をクリーンアップしています。内容が変更された項目や使用中の項目は、誤って削除しないようスキップします",
-    "windowsPreviousInstallationsCleanupHint": "Windows の確認画面で承認し、システムのクリーンアップが完了するまで MangoDisk を起動したままにしてください",
+    "windowsPreviousInstallationsCleanupHint": "Windows の確認画面で承認し、システムのクリーンアップが完了するまで Disco を起動したままにしてください",
     "previewingSafetyHint": "選択した項目を何も削除・変更せずに確認中",
     "elapsedSeconds": "{count} 秒 | {count} 秒",
     "cleanupItemList": "クリーンアップ項目進行状況",
@@ -3957,7 +3957,7 @@
       "requiredToolUnavailable": "このクリーンアップに必要なアプリまたはツールが利用できません。変更はありません",
       "preflightFailed": "選択したファイルを安全に確認できませんでした。変更はありません",
       "executionFailed": "クリーンアップは完了しませんでした。他のファイルは削除されませんでした",
-      "verificationFailed": "クリーンアップは完了しましたが、MangoDiskは結果を確認できませんでした。再度スキャンしてください",
+      "verificationFailed": "クリーンアップは完了しましたが、Discoは結果を確認できませんでした。再度スキャンしてください",
       "cleanerUnavailable": "このクリーンアップオプションは現在利用できません。何も変更されませんでした",
       "nameExclusionsUnsupported": "名前の除外を安全に適用できないため、この項目はスキップされました"
     }
@@ -3978,9 +3978,9 @@
     "processExited": "このプロセスは終了しました",
     "locationUnavailable": "ファイルの場所を取得できません",
     "revealFailed": "この項目を表示できません。移動または削除された可能性があります",
-    "autostartHint": "パソコンへのログイン時に MangoDisk を自動で起動します",
+    "autostartHint": "パソコンへのログイン時に Disco を自動で起動します",
     "autostart": "ログイン時に自動起動",
-    "openMain": "MangoDisk を開く",
+    "openMain": "Disco を開く",
     "title": "システムモニター",
     "memory": "メモリ",
     "memoryUsage": "メモリ使用率",
@@ -4074,7 +4074,7 @@
     "unsupported": "非対応",
     "failed": "データを取得できません",
     "details": "システムの状態",
-    "openMain": "MangoDisk を開く",
+    "openMain": "Disco を開く",
     "settings": "設定",
     "quit": "終了",
     "upload": "アップロード",
@@ -4146,7 +4146,7 @@
     "batteryUnsupportedHint": "この Mac ではバッテリーデータを取得できません"
   },
   "webviewRuntime": {
-    "updateRequired": "MangoDisk の画面表示に必要なコンポーネントが古くなっています。Microsoft Edge WebView2 Runtime を更新してから、MangoDisk を再起動してください",
+    "updateRequired": "Disco の画面表示に必要なコンポーネントが古くなっています。Microsoft Edge WebView2 Runtime を更新してから、Disco を再起動してください",
     "update": "更新ページを開く",
     "exit": "終了",
     "openFailed": "ブラウザーを開けませんでした。次のアドレスにアクセスして、Microsoft Edge WebView2 Runtime を更新してください：\n{url}",
@@ -4245,7 +4245,7 @@
     "coreMaximumHint": "CPU コアセンサー {count} 個の最高温度",
     "diodeHint": "CPU ダイオード温度",
     "proximityHint": "CPU 付近のセンサーで測定した温度です。コアやパッケージの温度とは異なります",
-    "unsupportedHint": "MangoDisk はこのデバイスで CPU 温度センサーを確認して読み取ることができません",
+    "unsupportedHint": "Disco はこのデバイスで CPU 温度センサーを確認して読み取ることができません",
     "trend": "直近1分間の CPU 温度（摂氏）"
   },
   "windowsMonitoring": {
@@ -4278,10 +4278,10 @@
     "collectionOff": "温度の収集は無効です",
     "goToSettings": "設定を開く",
     "supportHint": "対応 x64 PC の Intel CPU パッケージ温度と AMD CPU ダイ温度をサポートします",
-    "collectionHint": "MangoDisk の実行中は温度の推移を記録します",
+    "collectionHint": "Disco の実行中は温度の推移を記録します",
     "displayHint": "温度表示を非表示にしても記録は続きます",
     "more": "その他",
-    "installBody": "MangoDisk 取得サービスで CPU 温度と推移を表示します",
+    "installBody": "Disco 取得サービスで CPU 温度と推移を表示します",
     "enableHint": "有効にすると CPU 温度と推移を確認できます",
     "supportSummary": "一部の Intel・AMD PC に対応",
     "repairHint": "温度を取得できません。取得サービスを修復してください",
@@ -4363,6 +4363,6 @@
     "activity": "ディスク動作",
     "systemRead": "システム総読み取り",
     "systemWritten": "システム総書き込み",
-    "systemHint": "システムが報告する全ディスクの累積読み書き量\nMangoDisk の再起動ではリセットされません\n起点は OS とドライバーによります。SMART の生涯累積値とは異なります"
+    "systemHint": "システムが報告する全ディスクの累積読み書き量\nDisco の再起動ではリセットされません\n起点は OS とドライバーによります。SMART の生涯累積値とは異なります"
   }
 }

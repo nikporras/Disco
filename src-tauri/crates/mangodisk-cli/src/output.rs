@@ -69,7 +69,7 @@ pub fn write_outcome(
 
 pub fn write_error(message: &str, format: OutputFormat, code: CliExitCode) {
     match format {
-        OutputFormat::Human => eprintln!("MangoDisk CLI failed: {message}"),
+        OutputFormat::Human => eprintln!("Disco CLI failed: {message}"),
         OutputFormat::Json => println!(
             "{}",
             json!({

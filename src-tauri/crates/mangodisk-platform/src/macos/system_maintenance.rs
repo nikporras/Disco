@@ -460,7 +460,7 @@ fn run_administrator_command(
     limits: ControlledCommandLimits,
 ) -> PlatformResult<()> {
     let prompt = authorization_prompt.unwrap_or(
-        "MangoDisk needs administrator approval to perform the selected system maintenance.",
+        "Disco needs administrator approval to perform the selected system maintenance.",
     );
     if prompt.contains(['\n', '\r']) || prompt.len() > 240 {
         return Err(PlatformError::new(

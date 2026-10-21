@@ -211,11 +211,9 @@ fn validate_permanent_delete_target_metadata(
     metadata: &fs::Metadata,
 ) -> Result<(), PermanentDeleteError> {
     if current_platform().is_link_like(metadata) {
-        return Err(
-            "MangoDisk cannot permanently delete a link or reparse point"
-                .to_string()
-                .into(),
-        );
+        return Err("Disco cannot permanently delete a link or reparse point"
+            .to_string()
+            .into());
     }
     if metadata.is_file() || metadata.is_dir() {
         return Ok(());
@@ -379,7 +377,7 @@ pub(crate) fn delete_analysis_candidate_permanently(
     // points before resolving the path so the target cannot be moved instead
     // of the link itself.
     if current_platform().is_link_like(requested_metadata) {
-        return Err("MangoDisk cannot process a link or reparse point"
+        return Err("Disco cannot process a link or reparse point"
             .to_string()
             .into());
     }
@@ -422,7 +420,7 @@ pub(crate) fn delete_analysis_candidate_permanently(
         .is_some()
     {
         return Err(
-            "MangoDisk cannot process a protected system or application item"
+            "Disco cannot process a protected system or application item"
                 .to_string()
                 .into(),
         );
@@ -1712,7 +1710,7 @@ pub(crate) fn delete_file_candidate_permanently(
         .is_some()
     {
         return Err(
-            "MangoDisk cannot process a protected system or application file"
+            "Disco cannot process a protected system or application file"
                 .to_string()
                 .into(),
         );

@@ -1,21 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { projectWebsiteUrl } from './project-website';
 
-describe('localized project website links', () => {
-  it.each([
-    ['zh-CN', '/zh'],
-    ['zh-TW', '/tw'],
-    ['ja-JP', '/ja'],
-    ['ko-KR', ''],
-    ['ru-RU', ''],
-    ['en-US', ''],
-    ['tr-TR', ''],
-    ['pt-BR', ''],
-    ['unknown', ''],
-  ])('maps %s to a stable documentation route without query parameters', (locale, prefix) => {
-    expect(projectWebsiteUrl(locale)).toBe(`https://mangodisk.app${prefix}`);
-    expect(projectWebsiteUrl(locale, '/docs/ai#custom-service')).toBe(
-      `https://mangodisk.app${prefix}/docs/ai#custom-service`
-    );
+describe('project website link', () => {
+  it('opens the Disco repository and never an upstream MangoDisk domain', () => {
+    expect(projectWebsiteUrl()).toBe('https://github.com/nikporras/Disco');
+    expect(projectWebsiteUrl()).not.toContain('mangodisk.app');
   });
 });

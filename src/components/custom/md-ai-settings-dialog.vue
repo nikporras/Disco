@@ -35,7 +35,7 @@ const { t, locale } = useI18n({ useScope: 'global' });
 // feedback as well as suppressing callbacks that arrive after unmount.
 const notificationId = useId();
 let disposed = false;
-const guideUrl = computed(() => projectWebsiteUrl(locale.value, '/docs/ai#custom-service'));
+const guideUrl = computed(() => projectWebsiteUrl());
 
 async function openGuide() {
   try {

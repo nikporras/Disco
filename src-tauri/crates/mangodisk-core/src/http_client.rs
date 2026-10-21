@@ -24,7 +24,7 @@ fn format_user_agent(identity: &SystemIdentity) -> String {
         other => other,
     };
     format!(
-        "MangoDisk/{} ({} {}; {})",
+        "Disco/{} ({} {}; {})",
         env!("CARGO_PKG_VERSION"),
         comment_field(identity.operating_system),
         comment_field(identity.version.as_deref().unwrap_or("unknown")),
@@ -89,7 +89,7 @@ mod tests {
             };
             assert_eq!(
                 format_user_agent(&identity),
-                format!("MangoDisk/{} ({expected})", env!("CARGO_PKG_VERSION")),
+                format!("Disco/{} ({expected})", env!("CARGO_PKG_VERSION")),
             );
         }
     }

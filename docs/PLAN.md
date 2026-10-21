@@ -228,6 +228,16 @@ Motivo: Bitdefender marcó `MangoDisk.exe` por comportamiento tras la prueba de 
 - Añadir `NOTICE` / `THIRD-PARTY-NOTICES` con MangoDisk (GPL) y BCU (Apache, aunque aún no se use).
 - **Prueba**: `pnpm check:identity`, `pnpm check`, abrir la app y ver "Disco".
 
+**Hecho (21-oct-2026, rama `fase-1-renombrado`):**
+- Identidad: `package.json`, workspace de Cargo, `tauri*.conf.json` (`Disco`, `io.github.nikporras.disco`, `Disco.exe`, editor `Disco`), `APPLICATION_IDENTIFIER`, títulos de ventana, descripción emergente de la bandeja, HTML, textos de los 8 idiomas (con los sufijos del turco ajustados), `User-Agent` HTTP `Disco/…` y mensajes visibles del Core.
+- **CLI `disco`** (adelantado del Nivel 2 por decisión del usuario); los crates siguen llamándose `mangodisk-*`.
+- **Icono provisional** propio (`public/disco.svg`, un disco con un sector), con todos los tamaños e imágenes del instalador regenerados. El logo de MangoDisk ya no se usa. Pendiente: arte definitivo y el fondo del DMG de macOS (`assets/dmg-background.jpg`).
+- Enlaces "sitio web", "repositorio", "licencia" y la guía de IA apuntan a `https://github.com/nikporras/Disco`.
+- Se elimina el *hook* de NSIS que migraba instalaciones de MangoDisk.
+- README nuevo con atribución (versiones cortas en los otros 5 idiomas), `NOTICE`, `SECURITY.md`, `CONTRIBUTING.md`, `AGENTS.md` y plantillas de incidencias.
+- `check:identity` comprueba los valores nuevos, que los recursos de MangoDisk ya no existan y el requisito S2 (sin endpoints de `mangodisk.app` en el actualizador, el feedback, la IA oficial ni los enlaces).
+- Al cambiar el identificador, Disco usa carpetas de datos nuevas (`%APPDATA%\io.github.nikporras.disco`…) y empieza sin ajustes ni historial; las de MangoDisk no se tocan.
+
 ### Fase 2 — Esqueleto del helper .NET (solo lectura)
 - `third_party/bcu` fijado a un commit; proyecto `helpers/disco-bcu-helper` (.NET 10, manifiesto `asInvoker`) con comando `inventory` y JSON versionado; script `scripts/build-bcu-helper.mjs` que lo compila y copia a `src-tauri/resources/bcu/`.
 - Parche mínimo y marcado a BCU: `Rewindable = true` en `WmiQueries.GetWindowsFeatures` (ver resultados de la Fase 0). Test: el inventario incluye Windows Features.

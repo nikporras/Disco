@@ -1,24 +1,23 @@
 # System-surface icons
 
-`public/mangodisk.svg` is the approved vector source. Regenerate the compact
-variants from the repository root with:
+`public/disco.svg` is the vector source. It is a **placeholder** mark (a disc
+with a highlighted sector) until Disco has final artwork; MangoDisk's mango logo
+is not used. Regenerate the derived icons from the repository root with:
 
 ```sh
 node scripts/generate-resident-icons.mjs
 ```
 
-- `tray-template.png`: 36 px monochrome mask for macOS. Tauri/AppKit renders it
-  at 18 points and supplies the menu-bar foreground color.
+- `tray-template.png`: 36 px monochrome mask for macOS (the disc and its center
+  hole). Tauri/AppKit renders it at 18 points and supplies the menu-bar color.
 - `tray-color.png`: 64 px transparent color artwork for the system tray.
-- `windows/icon.ico`: multiple native sizes for Windows taskbar, executable and
-  installer icons, selected by `tauri.windows.conf.json`. The largest entry is
-  first because Tauri embeds that entry for live windows; Windows can still
-  choose from all sizes for executable and shortcut icons.
+- `windows/icon.ico`: multiple native sizes for the Windows taskbar, executable
+  and installer, selected by `tauri.windows.conf.json`. The largest entry is
+  first because Tauri embeds that entry for live windows.
 
-Color variants also use 15% horizontal optical compensation and about 1.5%
-vertical padding to balance the narrow mango against square Windows icons.
-The macOS template keeps its original proportions.
-
-These variants remove the Dock tile and reduce source whitespace. The existing
-macOS application/Dock icons remain separate. Do not manually edit the derived
-PNG/ICO files; adjust the source or the documented framing in the generator.
+The application icons (`32x32.png`, `128x128*.png`, `icon.png`, `icon.ico`,
+`icon.icns`) come from `pnpm tauri icon public/disco.svg`, and the NSIS
+`installer-header.bmp` (150×57) and `installer-sidebar.bmp` (164×314) place
+that icon on a white background. Do not edit the derived files by hand; change
+the source or the generation steps instead. `public/disco.png` is a 512 px
+raster of the same source for the HTML favicon.

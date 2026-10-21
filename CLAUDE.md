@@ -22,7 +22,7 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 
 ## Estado actual
 
-*Actualizado: 21-oct-2026, al integrar las fases 0 y 0b en `main`.*
+*Actualizado: 21-oct-2026, al terminar la Fase 1.*
 
 **Fases terminadas e integradas en `main`**
 - Fase 0 — Línea base y corte con mangodisk.app (`fase-0-linea-base`). BCU apunta a .NET 8; el helper usará .NET 10 con un parche WMI de una línea.
@@ -34,13 +34,21 @@ El plan completo, con fases, está en [`docs/PLAN.md`](docs/PLAN.md). Las reglas
 
   Todo lo probó a mano el usuario entre el 19 y el 21 de octubre: Bitdefender ya no marca el ejecutable, no se crean `taskbar-layout` ni `network-traffic.json`, y Privacidad se comporta como se espera.
 
-**Ramas pendientes de integrar en `main`**: ninguna.
+**Fases terminadas, pendientes de prueba y aprobación**
+- Fase 1 — Renombrado visible a Disco: identidad, icono provisional, CLI `disco`, README/NOTICE y `check:identity` con S2. Detalle en `docs/PLAN.md`.
 
-**Falta probar a mano**: nada de las fases cerradas. Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
+**Ramas pendientes de integrar en `main`**: `fase-1-renombrado`.
+
+**Falta probar a mano** (Fase 1)
+- Compilar con `pnpm tauri build --debug --no-bundle` y abrir `C:\Dev\Disco\target\debug\Disco.exe`.
+- La ventana, la barra de título, el área de notificación y "Acerca de" dicen "Disco" con el icono provisional, y "Sitio web" y "Repositorio" abren `github.com/nikporras/Disco`.
+- La app empieza con ajustes por defecto y crea `%APPDATA%\io.github.nikporras.disco`.
+- Opcional: `pnpm cli:build` y `target\release\disco.exe clean`.
+- Sin validar: macOS/Linux y el build con `--features hardware-sensors`.
 
 **Entorno**: Bitdefender tiene exclusiones para `C:\Dev\Disco`, `.cargo`, `.rustup` y pnpm, porque bloqueaba `dist`, `target` y las herramientas. Si vuelven a fallar los builds con "acceso denegado" o `LNK1104`, revisar el historial de Bitdefender.
 
-**Fase en curso**: Fase 1 — Renombrado visible a Disco (rama `fase-1-renombrado`).
+**Siguiente fase**: Fase 2 — Esqueleto del helper .NET (solo lectura). Empieza solo tras aprobar la Fase 1.
 
 ## Comandos
 

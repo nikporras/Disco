@@ -7,7 +7,7 @@ import MdDialogFooter from '@/components/custom/md-dialog-footer.vue';
 import MdDialogHeader from '@/components/custom/md-dialog-header.vue';
 import MdSafeRichText from '@/components/custom/md-safe-rich-text.vue';
 import MdIcon from '@/components/icons/md-icon.vue';
-import MdIconMangodisk from '@/components/icons/md-icon-mangodisk.vue';
+import MdIconDisco from '@/components/icons/md-icon-disco.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import {
@@ -46,7 +46,7 @@ const emit = defineEmits<{
   restart: [];
   openLink: [url: string];
 }>();
-const { locale, t } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'global' });
 const thirdPartyLicensesOpen = ref(false);
 const MdThirdPartyLicensesDialog = defineAsyncComponent(() => import('./md-third-party-licenses-dialog.vue'));
 
@@ -79,7 +79,7 @@ const dialogDescription = computed(() =>
     ? t('updates.currentVersionDescription', { version: currentVersionLabel.value })
     : currentVersionLabel.value
 );
-const websiteUrl = computed(() => projectWebsiteUrl(locale.value));
+const websiteUrl = computed(() => projectWebsiteUrl());
 const downloadPercent = computed(() => AppUpdateProgressUtils.percent(props.downloadedBytes, props.totalBytes));
 const progressLabel = computed(() => {
   if (!props.totalBytes) return t('updates.downloading');
@@ -128,7 +128,7 @@ function downloadUpdate() {
     <MdDialogContent :class="{ 'is-update-focused': updateFocused }" :show-close="!closeLocked" size="standard">
       <MdDialogHeader class="about-dialog-header" :class="{ focused: updateFocused }" variant="brand">
         <span class="about-dialog-mark" aria-hidden="true">
-          <MdIconMangodisk :size="updateFocused ? 46 : 58" />
+          <MdIconDisco :size="updateFocused ? 46 : 58" />
         </span>
         <div class="about-dialog-identity">
           <DialogTitle>{{ dialogTitle }}</DialogTitle>

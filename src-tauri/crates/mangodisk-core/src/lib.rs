@@ -13,7 +13,7 @@ mod system_maintenance;
 pub mod system_resources;
 mod system_settings;
 
-pub const APPLICATION_IDENTIFIER: &str = "app.mangodisk.desktop";
+pub const APPLICATION_IDENTIFIER: &str = "io.github.nikporras.disco";
 
 pub use applications::leftovers::{
     ApplicationLeftoverActionReason, ApplicationLeftoverActionResult,

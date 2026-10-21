@@ -1,10 +1,10 @@
-# MangoDisk Contribution Guidelines
+# Disco Contribution Guidelines
 
 These rules apply to the entire repository. More specific guidance lives in [`src/AGENTS.md`](src/AGENTS.md) and [`src-tauri/AGENTS.md`](src-tauri/AGENTS.md); a child file adds only rules for its own subtree and does not replace this file.
 
 ## Product and architecture
 
-MangoDisk is a Tauri 2 desktop application for safe disk analysis and cleanup. The Vue frontend is an adapter for user interaction. Rust owns filesystem access, platform safety, scan orchestration, cleanup execution, and persisted operational data.
+Disco (a fork of MangoDisk) is a Tauri 2 desktop application for safe disk analysis, cleanup and uninstallation. The Vue frontend is an adapter for user interaction. Rust owns filesystem access, platform safety, scan orchestration, cleanup execution, and persisted operational data.
 
 Keep these domain boundaries stable:
 
@@ -55,7 +55,7 @@ Do not create broad modules such as `common`, `misc`, `manager`, `optimization`,
 5. Validate cross-platform behavior in an applicable macOS and Windows environment. If a platform is unavailable, document the unvalidated scope instead of claiming support from local results.
 6. For behavior or performance changes, describe the tested workload, environment, and observable result in the change description without committing raw machine reports or private data.
 7. Review the final diff for correctness, safety, privacy, platform fallbacks, naming, and stale documentation before committing.
-8. For macOS native UI inspection, stop running MangoDisk, Tauri dev, and Vite processes before building `pnpm tauri build --debug --bundles app --no-sign`. Launch and inspect the exact `target/debug/bundle/macos/MangoDisk.app` path; the raw `tauri dev` executable has no bundle ID and cannot be targeted reliably by macOS UI automation.
+8. For macOS native UI inspection, stop running Disco, Tauri dev, and Vite processes before building `pnpm tauri build --debug --bundles app --no-sign`. Launch and inspect the exact `target/debug/bundle/macos/Disco.app` path; the raw `tauri dev` executable has no bundle ID and cannot be targeted reliably by macOS UI automation.
 
 ## Required validation
 

@@ -153,7 +153,7 @@ pub struct Reader {
 impl Reader {
     pub fn read(&mut self) -> PlatformResult<Vec<InterfaceSample>> {
         if self.store.is_none() {
-            self.store = SCDynamicStoreBuilder::new("MangoDisk resource interfaces").build();
+            self.store = SCDynamicStoreBuilder::new("Disco resource interfaces").build();
         }
         let primary = primary_interfaces(self.store.as_ref());
         let addressed = addressed_interfaces()?;

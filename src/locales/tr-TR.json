@@ -59,7 +59,7 @@
       "freeRateLimited": "Çok sık istek gönderiliyor. Biraz sonra tekrar deneyin",
       "freeConcurrent": "Diğer açıklamalar hazırlanıyor. Lütfen bekleyin",
       "freeClockSkew": "Sistem saatini kontrol edip tekrar deneyin",
-      "freeSignatureInvalid": "MangoDisk'i güncelleyin veya özel bir hizmet kullanın. Bu derleme ücretsiz yapay zekâyı desteklemiyor",
+      "freeSignatureInvalid": "Disco'yu güncelleyin veya özel bir hizmet kullanın. Bu derleme ücretsiz yapay zekâyı desteklemiyor",
       "freeRequestExists": "Bu istek yineleniyor veya artık geçerli değil. Yeni bir açıklama başlatın",
       "freeArchiveUnavailable": "Ücretsiz açıklama işlenemedi. Daha sonra tekrar deneyin",
       "disabled": "Yapay zekâ özellikleri kapalı"
@@ -69,7 +69,7 @@
     "completed": "Açıklama hazır",
     "explainItem": "Yapay zekâ açıklaması: {name}",
     "serviceMode": "Yapay zekâ hizmeti",
-    "freeService": "MangoDisk Ücretsiz",
+    "freeService": "Disco Ücretsiz",
     "customService": "Özel hizmet",
     "customDescription": "API anahtarınızla OpenAI uyumlu bir hizmete bağlanın",
     "advancedSettings": "Gelişmiş ayarlar",
@@ -121,7 +121,7 @@
   "fullDiskAccessGuidance": {
     "summary": "Disk erişimini kontrol edin",
     "title": "Tam Disk Erişimini kontrol edin",
-    "instructions": "Sistem Ayarları’nda MangoDisk için Tam Disk Erişimini kontrol edin ve yeniden tarayın. Zaten etkinse diğer erişim kısıtlamaları için tarama günlüklerini inceleyin",
+    "instructions": "Sistem Ayarları’nda Disco için Tam Disk Erişimini kontrol edin ve yeniden tarayın. Zaten etkinse diğer erişim kısıtlamaları için tarama günlüklerini inceleyin",
     "skip": "Şimdi değil",
     "openSettings": "Tam Disk Erişimi ayarlarını aç"
   },
@@ -310,7 +310,7 @@
     "scanningDescription": "Kontrol, sistemi değiştirmeden bileşenlerin durumunu okur",
     "scanFailedTitle": "Bakım kontrolü tamamlanamadı",
     "scanFailedDescription": "Sistem içeriği değiştirilmedi. Yeniden kontrol edin; sorun sürerse Ayarlar'daki günlükleri inceleyin",
-    "authorizationPrompt": "MangoDisk bu bakım görevini çalıştırmak için yönetici iznine ihtiyaç duyuyor",
+    "authorizationPrompt": "Disco bu bakım görevini çalıştırmak için yönetici iznine ihtiyaç duyuyor",
     "rescan": "Yeniden kontrol et",
     "filterCategory": "Bakım kategorilerini filtrele",
     "executeOne": "Çalıştır",
@@ -1584,7 +1584,7 @@
       "disableNamedGroup": "{name} öğesini devre dışı bırak",
       "futureOnly": "Otomatik başlatmayı kapatmak, çalışmakta olan programları veya hizmetleri durdurmaz",
       "requiresElevation": "Yönetici izni gerekli",
-      "authorizationPromptMacos": "MangoDisk başlangıç ayarlarını değiştirmek için yönetici iznine ihtiyaç duyuyor",
+      "authorizationPromptMacos": "Disco başlangıç ayarlarını değiştirmek için yönetici iznine ihtiyaç duyuyor",
       "confirm": "Onayla",
       "applying": "Uygulanıyor…",
       "refreshFailedResult": "İşlem tamamlandı ancak liste güncellenemedi. Yeniden tarayın",
@@ -1635,7 +1635,7 @@
         "find": "Oturum Açma Öğeleri ayarlarında uygulama veya geliştirici adını bulun",
         "loginItem": "Oturum Açıldığında Aç: uygulamayı seçin ve kaldırmak için “−” düğmesine tıklayın",
         "backgroundItem": "Arka plan etkinliği: anahtarı kapatın; eski kayıt listede kalabilir",
-        "rescan": "Ardından MangoDisk'e dönüp yeniden tarayın",
+        "rescan": "Ardından Disco'ya dönüp yeniden tarayın",
         "settingsPath": "macOS 12: Kullanıcılar ve Gruplar'da Oturum Açma Öğeleri'ne tıklayın. Yeni sistemlerde Oturum Açma Öğeleri'ni arayın"
       }
     },
@@ -1644,7 +1644,7 @@
       "description": "Açıklama",
       "version": "Sürüm",
       "systemManaged": "Bu öğeyi macOS yönetir; Oturum Açma Öğeleri'nden değiştirebilirsiniz",
-      "viewOnly": "Bu öğe görüntülenebilir ancak MangoDisk'te doğrudan değiştirilemez",
+      "viewOnly": "Bu öğe görüntülenebilir ancak Disco'da doğrudan değiştirilemez",
       "protectedService": "Bu hizmet Windows tarafından korunur ve buradan değiştirilemez",
       "openLoginItemsSettings": "Oturum Açma Öğeleri ayarlarını aç",
       "source": "Başlangıç türü",
@@ -1697,8 +1697,8 @@
     "invalidInput": "Geçersiz istek. Seçili öğeleri gözden geçirip tekrar deneyin",
     "operationCancelled": "İşlem iptal edildi",
     "operationFailed": "İşlem tamamlanamadı. Tekrar deneyin",
-    "permissionDenied": "MangoDisk bu işlemi tamamlamak için gerekli izne sahip değil",
-    "persistenceFailed": "MangoDisk işlem verilerini kaydedemedi. Tekrar deneyin",
+    "permissionDenied": "Disco bu işlemi tamamlamak için gerekli izne sahip değil",
+    "persistenceFailed": "Disco işlem verilerini kaydedemedi. Tekrar deneyin",
     "taskJoinFailed": "Bir arka plan görevi beklenmedik şekilde durdu. Tekrar deneyin"
   },
   "errorTitles": {
@@ -1733,7 +1733,7 @@
     },
     "itemChanged": {
       "title": "Öğe kısa süre önce değişti",
-      "message": "Silme işlemi hazırlanırken bu öğe değişti. MangoDisk yanlış içeriği silmemek için işlemi durdurdu; öğeyi yeniden analiz edin"
+      "message": "Silme işlemi hazırlanırken bu öğe değişti. Disco yanlış içeriği silmemek için işlemi durdurdu; öğeyi yeniden analiz edin"
     },
     "scanResourcesReleasing": {
       "title": "Önceki tarama tamamlanıyor",
@@ -1829,7 +1829,7 @@
       "sizePending": "Yönetici erişimi gerekli",
       "action": "Yönetici kontrolü",
       "checking": "Kontrol ediliyor…",
-      "restartHint": "MangoDisk’i yönetici olarak yeniden başlatıp tekrar tarayın"
+      "restartHint": "Disco’yu yönetici olarak yeniden başlatıp tekrar tarayın"
     },
     "categoryItemCount": "{count} öğe | {count} öğe",
     "categoryTitles": {
@@ -2165,7 +2165,7 @@
     "categoryTitle": "Uygulama kalıntıları",
     "scanning": "Kaldırılmış uygulamalardan kalan veriler kontrol ediliyor…",
     "scanHint": "Yalnızca artık yüklü olmayan bir uygulamayla açıkça ilişkilendirilebilen veriler gösterilir. Tarama hiçbir şeyi değiştirmez",
-    "accessLimitedDescription": "MangoDisk'in diğer uygulama verilerine erişmesine Sistem Ayarları → Gizlilik ve Güvenlik bölümünden izin verin, ardından tekrar tarayın",
+    "accessLimitedDescription": "Disco'nun diğer uygulama verilerine erişmesine Sistem Ayarları → Gizlilik ve Güvenlik bölümünden izin verin, ardından tekrar tarayın",
     "incompleteDescription": "Hatalı işlem riskini önlemek için hiçbir kalıntı gösterilmiyor. Daha sonra tekrar deneyin",
     "emptyTitle": "Doğrulanmış uygulama kalıntısı bulunamadı",
     "emptyDescription": "Güvenli şekilde uygulama kalıntısı olduğu doğrulanabilen veri bulunamadı",
@@ -2235,13 +2235,13 @@
     "incompleteTitle": "Yüklü uygulamalar tamamen okunamadı",
     "incompleteDescription": "Hatalı işlem riskini önlemek için kaldırma işlemi kullanılamıyor. Daha sonra tekrar deneyin",
     "viewOnlyTitle": "Bu sistemde uygulama kaldırma kullanılamıyor",
-    "viewOnlyDescription": "Yüklü uygulamaları inceleyebilirsiniz ancak MangoDisk burada uygulamaları kaldıramaz",
+    "viewOnlyDescription": "Yüklü uygulamaları inceleyebilirsiniz ancak Disco burada uygulamaları kaldıramaz",
     "applicationRunning": "Uygulamayı kapat",
     "closeBeforeUninstallTitle": "Kaldırmadan önce uygulamaları kapat",
     "closeBeforeUninstallDescription": "Kaldırmadan önce kapatılacak çalışan uygulamaları seçin",
     "requiresElevation": "Yönetici gerekli",
     "requiresElevationDescriptionMacos": "Bu uygulama kaldırılırken macOS yönetici onayı ister. Onay iptal edilirse uygulama yüklü kalır",
-    "authorizationPromptMacos": "MangoDisk bu uygulamayı kaldırmak için yönetici iznine ihtiyaç duyuyor",
+    "authorizationPromptMacos": "Disco bu uygulamayı kaldırmak için yönetici iznine ihtiyaç duyuyor",
     "readyForReview": "Hazır",
     "viewOnly": "Kaldırma kullanılamıyor",
     "orphanedRegistration": "Eski kayıt",
@@ -2464,7 +2464,7 @@
       "recoveryRequired": "Kaldırma düzgün tamamlanamadı; tekrar denemeden önce uygulamayı kontrol edin veya geri yükleyin",
       "nativeInstallerFailed": "Kaldırma programı kaldırmayı tamamlayamadı",
       "nativeInstallerFailedAfterRemoval": "Kurulum kaydı kaldırıldı ancak kaldırma programı hata bildirdi",
-      "verificationFailed": "MangoDisk sonucu doğrulayamadı",
+      "verificationFailed": "Disco sonucu doğrulayamadı",
       "removalUnconfirmed": "Kaldırma programı tamamlandı ancak uygulamanın kaldırıldığı doğrulanamadı. Kontrol etmek için uygulama listesini yenileyin"
     }
   },
@@ -2478,7 +2478,7 @@
     "supportSection": "Destek",
     "aboutSection": "Hakkında",
     "languageTitle": "Dil",
-    "languageDescription": "MangoDisk'in kullanacağı dili seçin",
+    "languageDescription": "Disco'nun kullanacağı dili seçin",
     "languageNames": {
       "zhCN": "简体中文",
       "zhTW": "繁體中文",
@@ -2499,7 +2499,7 @@
     "themeDark": "Koyu",
     "themeSystem": "Sistemi takip et",
     "fullDiskAccessTitle": "Tam Disk Erişimi",
-    "fullDiskAccessDescription": "Daha kapsamlı temizlik sonuçları için MangoDisk'in korumalı sistem ve uygulama verilerini taramasına izin verir",
+    "fullDiskAccessDescription": "Daha kapsamlı temizlik sonuçları için Disco'nun korumalı sistem ve uygulama verilerini taramasına izin verir",
     "openPrivacySettings": "Sistem Ayarları",
     "permissionStatus": {
       "notChecked": "Kontrol edilmedi",
@@ -2507,7 +2507,7 @@
       "limited": "Erişim sınırlı"
     },
     "feedbackTitle": "Geri Bildirim",
-    "feedbackDescription": "MangoDisk'i nasıl daha iyi hale getirebileceğimizi sizden duymak isteriz",
+    "feedbackDescription": "Disco'yu nasıl daha iyi hale getirebileceğimizi sizden duymak isteriz",
     "feedbackAction": "Geri Bildirim Gönder",
     "feedbackDialog": {
       "title": "Geri bildirim gönder",
@@ -2534,7 +2534,7 @@
       "submit": "Geri bildirim gönder",
       "submitting": "Gönderiliyor…",
       "successTitle": "Geri bildirim gönderildi",
-      "successDescription": "Geri bildiriminiz için teşekkürler. MangoDisk'i geliştirmek için kullanacağız",
+      "successDescription": "Geri bildiriminiz için teşekkürler. Disco'yu geliştirmek için kullanacağız",
       "referenceId": "Başvuru numarası: {id}",
       "copyReference": "Geri bildirim numarasını kopyala",
       "referenceCopied": "Geri bildirim numarası kopyalandı",
@@ -2550,7 +2550,7 @@
       }
     },
     "diagnosticLogsTitle": "Tanılama Günlükleri",
-    "diagnosticLogsDescription": "Sorun giderme için MangoDisk çalışma zamanı günlüklerini görüntüleyin",
+    "diagnosticLogsDescription": "Sorun giderme için Disco çalışma zamanı günlüklerini görüntüleyin",
     "openLogFolderAction": "Klasörü Aç",
     "softwareUpdateTitle": "Yazılım Güncellemeleri",
     "updateCheckAction": "Güncellemeleri Denetle",
@@ -2568,7 +2568,7 @@
     "updateCheckFailedTitle": "Güncellemeler denetlenemedi",
     "updateCheckUnknownError": "Güncelleme hizmeti bilinmeyen bir hata döndürdü",
     "versionUnknown": "Yükleniyor…",
-    "aboutTitle": "MangoDisk Hakkında",
+    "aboutTitle": "Disco Hakkında",
     "aboutDescription": "Disk temizleme ve depolama analizi için açık kaynaklı, hafif ve güvenli bir platformlar arası araç",
     "projectLinksLabel": "Proje bağlantıları",
     "websiteAction": "Resmî Web Sitesi",
@@ -2579,24 +2579,24 @@
   "updates": {
     "noticeAvailable": "Güncelleme mevcut",
     "noticeRetry": "Güncelleme penceresini açmayı tekrar dene",
-    "availableTitle": "MangoDisk {version} kullanılabilir",
+    "availableTitle": "Disco {version} kullanılabilir",
     "currentVersionDescription": "Mevcut sürüm {version}",
     "checkDescription": "Daha yeni bir sürüm olup olmadığını kontrol et",
     "checkingDescription": "Güncelleme hizmetine bağlanılıyor…",
-    "upToDateDescription": "MangoDisk {version} güncel",
+    "upToDateDescription": "Disco {version} güncel",
     "releaseNotes": "Yenilikler",
     "noReleaseNotes": "Bu güncelleme iyileştirmeler ve hata düzeltmeleri içeriyor",
     "downloadUpdate": "Güncellemeyi İndir",
     "downloadPortable": "Taşınabilir sürümü indir",
-    "portableDescription": "Bu taşınabilir sürüm elle güncellenir. Yeni dosyayı indirin, MangoDisk'i kapatın, ardından geçerli çalıştırılabilir dosyayı yenisiyle değiştirin",
+    "portableDescription": "Bu taşınabilir sürüm elle güncellenir. Yeni dosyayı indirin, Disco'yu kapatın, ardından geçerli çalıştırılabilir dosyayı yenisiyle değiştirin",
     "continueInBackground": "Arka Planda Devam Et",
-    "downloadedTitle": "MangoDisk {version} hazır",
-    "installedTitle": "MangoDisk {version} yüklendi",
-    "downloadComplete": "İndirme tamamlandı · MangoDisk yüklemeden sonra yeniden başlatılacak",
+    "downloadedTitle": "Disco {version} hazır",
+    "installedTitle": "Disco {version} yüklendi",
+    "downloadComplete": "İndirme tamamlandı · Disco yüklemeden sonra yeniden başlatılacak",
     "installAndRestart": "Yükle ve Yeniden Başlat",
-    "restartRequired": "Yükleme tamamlandı · Güncellemeyi tamamlamak için MangoDisk'i yeniden başlatın",
+    "restartRequired": "Yükleme tamamlandı · Güncellemeyi tamamlamak için Disco'yu yeniden başlatın",
     "restartNow": "Şimdi Yeniden Başlat",
-    "restarting": "MangoDisk yeniden başlatılıyor…",
+    "restarting": "Disco yeniden başlatılıyor…",
     "notNow": "Şimdi Değil",
     "later": "Daha Sonra",
     "retry": "Tekrar Dene",
@@ -2606,7 +2606,7 @@
     "downloadFailed": "İndirme başarısız oldu",
     "manualDownloadFailed": "İndirme açılamadı",
     "installFailed": "Yükleme başarısız oldu",
-    "restartFailed": "MangoDisk yeniden başlatılamadı",
+    "restartFailed": "Disco yeniden başlatılamadı",
     "navigationNotice": "Yeni bir sürüm kullanılabilir"
   },
   "loading": {
@@ -2640,7 +2640,7 @@
     "validating": "Seçili öğeler doğrulanıyor…",
     "finalizing": "Temizlik sonuçları tamamlanıyor…",
     "cleaningSafetyHint": "Seçiminiz temizleniyor; yanlışlıkla silmeyi önlemek için değişmiş veya kullanımda olan içerikler atlanır",
-    "windowsPreviousInstallationsCleanupHint": "Windows sistem istemini onaylayın; Windows temizliği bitirene kadar MangoDisk'i açık tutun",
+    "windowsPreviousInstallationsCleanupHint": "Windows sistem istemini onaylayın; Windows temizliği bitirene kadar Disco'yu açık tutun",
     "previewingSafetyHint": "Seçili öğeler hiçbir şey silinmeden veya değiştirilmeden inceleniyor",
     "elapsedSeconds": "{count} sn | {count} sn",
     "cleanupItemList": "Temizlik öğesi ilerlemesi",
@@ -3957,7 +3957,7 @@
       "requiredToolUnavailable": "Bu temizlik için gerekli uygulama veya araç kullanılamıyor. Hiçbir şey değiştirilmedi",
       "preflightFailed": "Seçili dosyalar güvenli şekilde kontrol edilemedi. Hiçbir şey değiştirilmedi",
       "executionFailed": "Temizlik tamamlanamadı. Başka hiçbir dosya kaldırılmadı",
-      "verificationFailed": "Temizlik tamamlandı ancak MangoDisk sonucu doğrulayamadı. Tekrar tarayın",
+      "verificationFailed": "Temizlik tamamlandı ancak Disco sonucu doğrulayamadı. Tekrar tarayın",
       "cleanerUnavailable": "Bu temizlik seçeneği şu anda kullanılamıyor. Hiçbir şey değiştirilmedi",
       "nameExclusionsUnsupported": "Bu temizlik öğesinde ad kuralları güvenle uygulanamadığı için atlandı"
     }
@@ -3978,9 +3978,9 @@
     "processExited": "Bu işlem sonlandı",
     "locationUnavailable": "Konum kullanılamıyor",
     "revealFailed": "Bu öğe gösterilemedi. Taşınmış veya silinmiş olabilir",
-    "autostartHint": "Oturum açtığınızda MangoDisk'i otomatik başlatın",
+    "autostartHint": "Oturum açtığınızda Disco'yu otomatik başlatın",
     "autostart": "Oturum açıldığında başlat",
-    "openMain": "MangoDisk'i aç",
+    "openMain": "Disco'yu aç",
     "title": "Sistem izleyicisi",
     "memory": "Bellek",
     "memoryUsage": "Bellek kullanımı",
@@ -4074,7 +4074,7 @@
     "unsupported": "Desteklenmiyor",
     "failed": "Veriler okunamadı",
     "details": "Sistem durumu",
-    "openMain": "MangoDisk'i aç",
+    "openMain": "Disco'yu aç",
     "settings": "Ayarlar",
     "quit": "Çık",
     "upload": "Gönderme",
@@ -4146,11 +4146,11 @@
     "batteryUnsupportedHint": "Bu Mac üzerinde pil verileri okunamıyor"
   },
   "webviewRuntime": {
-    "updateRequired": "MangoDisk'i görüntüleyen bileşen güncel değil. Microsoft Edge WebView2 Runtime'ı güncelleyin, ardından MangoDisk'i yeniden açın",
+    "updateRequired": "Disco'yu görüntüleyen bileşen güncel değil. Microsoft Edge WebView2 Runtime'ı güncelleyin, ardından Disco'yu yeniden açın",
     "update": "Güncellemeyi indir",
     "exit": "Çık",
     "openFailed": "Tarayıcı açılamadı. Microsoft Edge WebView2 Runtime'ı güncellemek için şu adresi ziyaret edin:\n{url}",
-    "recoveryFailed": "Uygulama arayüzü geri yüklenemedi. Arka plan görevleri hâlâ çalışıyor olabilir. Bir işlemi tekrarlamadan önce durumunu kontrol edin, ardından MangoDisk’i kapatıp yeniden açın"
+    "recoveryFailed": "Uygulama arayüzü geri yüklenemedi. Arka plan görevleri hâlâ çalışıyor olabilir. Bir işlemi tekrarlamadan önce durumunu kontrol edin, ardından Disco’yu kapatıp yeniden açın"
   },
   "memoryRelease": {
     "title": "Bellek boşaltma ayarları",
@@ -4245,7 +4245,7 @@
     "coreMaximumHint": "{count} CPU çekirdek sensörünün en yüksek sıcaklığı",
     "diodeHint": "CPU diyot sıcaklığı",
     "proximityHint": "CPU yakınındaki sensörün ölçtüğü sıcaklık; çekirdek ve paket sıcaklıklarından farklıdır",
-    "unsupportedHint": "MangoDisk bu cihazda doğrulanmış bir CPU sıcaklık sensörünü okuyamıyor",
+    "unsupportedHint": "Disco bu cihazda doğrulanmış bir CPU sıcaklık sensörünü okuyamıyor",
     "trend": "Son bir dakikadaki CPU sıcaklığı, Santigrat derece"
   },
   "windowsMonitoring": {
@@ -4278,10 +4278,10 @@
     "collectionOff": "Sıcaklık ölçümü kapalı",
     "goToSettings": "Ayarlara git",
     "supportHint": "Uyumlu x64 bilgisayarlarda Intel paket ve AMD yonga sıcaklıklarını destekler",
-    "collectionHint": "MangoDisk çalışırken sıcaklık kaydedilir",
+    "collectionHint": "Disco çalışırken sıcaklık kaydedilir",
     "displayHint": "Sıcaklık göstergesini gizlemek kaydı durdurmaz",
     "more": "Diğer",
-    "installBody": "CPU sıcaklığını ve grafiğini görmek için MangoDisk toplama hizmetini yükleyin",
+    "installBody": "CPU sıcaklığını ve grafiğini görmek için Disco toplama hizmetini yükleyin",
     "enableHint": "CPU sıcaklığını ve grafiğini görmek için etkinleştirin",
     "supportSummary": "Bazı Intel ve AMD bilgisayarları destekler",
     "repairHint": "Sıcaklık toplama kullanılamıyor. Toplama hizmetini onarmayı deneyin",
@@ -4363,6 +4363,6 @@
     "activity": "Disk etkinliği",
     "systemRead": "Sistem okuması",
     "systemWritten": "Sistem yazması",
-    "systemHint": "Sistemin bildirdiği tüm disklerin birikimli G/Ç miktarı\nMangoDisk’i yeniden başlatmak sayaçları sıfırlamaz\nBaşlangıç OS ve sürücüye bağlıdır; SMART ömür boyu toplamından farklıdır"
+    "systemHint": "Sistemin bildirdiği tüm disklerin birikimli G/Ç miktarı\nDisco’yu yeniden başlatmak sayaçları sıfırlamaz\nBaşlangıç OS ve sürücüye bağlıdır; SMART ömür boyu toplamından farklıdır"
   }
 }

@@ -1,8 +1,8 @@
 [package]
 name = "mangodisk"
 version.workspace = true
-description = "MangoDisk cross-platform disk space manager"
-authors = ["harry0703"]
+description = "Disco disk space manager and deep uninstaller"
+authors.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 

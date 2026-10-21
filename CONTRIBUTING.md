@@ -1,6 +1,6 @@
-# Contributing to MangoDisk
+# Contributing to Disco
 
-Thank you for contributing to MangoDisk. This guide defines the contribution
+Thank you for contributing to Disco. This guide defines the contribution
 workflow; repository instructions remain authoritative for implementation
 details.
 

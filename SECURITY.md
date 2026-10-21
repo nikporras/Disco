@@ -2,14 +2,15 @@
 
 ## Supported versions
 
-Security updates are provided for the latest MangoDisk release. Older releases
-may not receive security fixes, so users should upgrade to the latest available
-version.
+Disco has no releases yet. Security fixes are made on the `main` branch of
+https://github.com/nikporras/Disco. Vulnerabilities in code inherited from
+MangoDisk or Bulk Crap Uninstaller may also need to be reported upstream.
 
 ## Reporting a vulnerability
 
 Do not disclose a suspected vulnerability in a public issue, discussion, or
-pull request. Report it privately through GitHub Security Advisories. Include:
+pull request. Report it privately through GitHub Security Advisories at
+https://github.com/nikporras/Disco/security/advisories/new. Include:
 
 - the affected version or commit;
 - the operating system and relevant permissions;
@@ -25,7 +26,7 @@ sensitive-path disclosure receive priority.
 
 ## Security boundaries
 
-MangoDisk treats scan results as untrusted until preflight. Destructive
+Disco treats scan results as untrusted until preflight. Destructive
 operations must preserve protected-path checks, link and reparse-point policy,
 explicit user intent, execution verification, and safe failure when platform
 capabilities are unavailable.

@@ -1,5 +1,5 @@
 /**
- * Derive compact system-surface icons from the approved public vector artwork.
+ * Derive system-surface icons from the public vector artwork.
  * Run with `node scripts/generate-resident-icons.mjs`; Tauri supplies the rasterizer
  * and ICO encoder, so icon maintenance needs no extra image-tool dependency.
  */
@@ -10,27 +10,18 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const source = readFileSync(join(root, 'public/mangodisk.svg'), 'utf8');
-const groups = [...source.matchAll(/<g\b[^>]*>[\s\S]*?<\/g>/gu)].map(match => match[0]);
-if (groups.length !== 4 || !groups.some(group => group.includes('url(#cream)'))) {
-  throw new Error('The approved logo structure changed; review the compact icon derivation.');
+const source = readFileSync(join(root, 'public/disco.svg'), 'utf8');
+const body = source.match(/<path id="disc-body"[^>]*\bd="([^"]+)"/u)?.[1];
+if (!body) {
+  throw new Error('The Disco logo structure changed; review the icon derivation.');
 }
 
-// Color icons need optical compensation next to round and square Windows icons:
-// reduce vertical padding to about 1.5% and widen the narrow mango by 15% around
-// its center. Keep this adjustment out of the macOS template and source artwork.
-const compact = source
-  .replace('viewBox="0 0 1254 1254"', 'viewBox="122 77 1052 1052"')
-  .replace('<g transform=', '<g transform="translate(-97.2 0) scale(1.15 1)"><g transform=')
-  .replace('</svg>', '</g></svg>');
-// Cream regions become transparent cutouts. Keeping only the outer orange,
-// stem and leaf paths preserves the platter/arm silhouette in template mode.
-const silhouette = groups
-  .filter(group => !group.includes('url(#cream)'))
-  .map(group => group.replace(/fill="url\(#[a-z]+\)"/gu, 'fill="black"'))
-  .join('\n');
-const template = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="92 46 1112 1112">${silhouette}</svg>`;
-const temporary = mkdtempSync(join(tmpdir(), 'mangodisk-icons-'));
+// The square disc artwork needs no optical compensation for color icons.
+const compact = source;
+// The macOS template keeps only the disc and its center hole as a black mask;
+// AppKit supplies the menu-bar foreground color.
+const template = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 1024 1024"><path fill="black" fill-rule="evenodd" d="${body}"/></svg>`;
+const temporary = mkdtempSync(join(tmpdir(), 'disco-icons-'));
 const output = join(root, 'src-tauri/icons');
 const cli = join(root, 'node_modules/@tauri-apps/cli/tauri.js');
 function generate(input, directory, sizes = []) {

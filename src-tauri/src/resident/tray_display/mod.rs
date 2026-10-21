@@ -283,7 +283,7 @@ fn ensure(app: &tauri::AppHandle, id: DisplayId, labels: &labels::Labels) -> tau
     let builder = TrayIconBuilder::with_id(id.tray_id())
         .icon(icon)
         .icon_as_template(cfg!(target_os = "macos"))
-        .tooltip("MangoDisk")
+        .tooltip("Disco")
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {
             #[cfg(target_os = "linux")]
@@ -534,7 +534,7 @@ fn render(
     // while hidden and apply the latest summary when that entry is shown again.
     if state.visible.contains(&DisplayId::App) && state.summary != summary {
         if let Some(tray) = app.tray_by_id(DisplayId::App.tray_id()) {
-            tray.set_tooltip(Some(format!("MangoDisk\n{summary}")))?;
+            tray.set_tooltip(Some(format!("Disco\n{summary}")))?;
         }
         state.summary = summary.clone();
     }

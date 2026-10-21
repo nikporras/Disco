@@ -1565,7 +1565,7 @@ fn delete_duplicate_directory_candidate(
         .should_skip(&target, &root, ScanPurpose::DuplicateFiles)
         .is_some()
     {
-        return Err("MangoDisk cannot process a protected duplicate directory".to_string());
+        return Err("Disco cannot process a protected duplicate directory".to_string());
     }
     let usage = verify_live_directory(
         &target,

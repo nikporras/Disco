@@ -1,0 +1,40 @@
+Disco
+Copyright (C) 2026 Disco contributors
+
+Disco is free software licensed under the GNU General Public License,
+version 3 only (GPL-3.0-only). See LICENSE.
+
+Disco is not affiliated with or endorsed by the projects below. Their names
+are used only to attribute their work.
+
+-------------------------------------------------------------------------------
+MangoDisk
+https://github.com/harry0703/MangoDisk
+Copyright (C) harry0703 and MangoDisk contributors
+License: GPL-3.0-only
+
+Disco is a fork of MangoDisk. Most of the application (Vue frontend, Tauri
+adapter, Rust Core and platform crates, cleanup rule library) originates from
+MangoDisk and has been modified by Disco contributors. The MangoDisk name and
+logo are not used as Disco's brand.
+
+-------------------------------------------------------------------------------
+Bulk Crap Uninstaller (BCU)
+https://github.com/Klocman/Bulk-Crap-Uninstaller
+Copyright 2017 Marcin Szeniak
+License: Apache License, Version 2.0
+
+Disco plans to use BCU libraries (UninstallTools, KlocTools and related
+projects) through a separate helper. When BCU code is included, its original
+copyright headers and NOTICE are preserved, files modified by Disco are marked
+as such, and the Apache License 2.0 text is distributed with it. Apache-2.0
+code is combined with Disco under GPL-3.0-only as permitted by both licenses.
+
+-------------------------------------------------------------------------------
+Other components
+
+Third-party libraries and bundled components keep their own licenses. The
+desktop app lists them under About > Third-party licenses. Optional components
+that are excluded from default builds (such as the PawnIO driver installer
+behind the `hardware-sensors` feature) document their provenance next to their
+files.

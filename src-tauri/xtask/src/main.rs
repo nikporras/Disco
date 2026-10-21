@@ -62,7 +62,7 @@ struct EngineBenchmarkCliOptions {
 
 fn main() {
     if let Err(error) = run() {
-        eprintln!("MangoDisk repository task failed: {error}");
+        eprintln!("Disco repository task failed: {error}");
         std::process::exit(1);
     }
 }

@@ -1,20 +1,25 @@
 {
-  "name": "mangodisk",
+  "name": "disco",
   "private": true,
   "version": "1.1.9",
   "author": {
-    "name": "harry0703",
-    "email": "harry0703@hotmail.com",
-    "url": "https://github.com/harry0703"
+    "name": "nikporras",
+    "url": "https://github.com/nikporras"
   },
+  "contributors": [
+    {
+      "name": "harry0703 (MangoDisk)",
+      "url": "https://github.com/harry0703"
+    }
+  ],
   "license": "GPL-3.0-only",
-  "homepage": "https://mangodisk.app",
+  "homepage": "https://github.com/nikporras/Disco",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/harry0703/MangoDisk.git"
+    "url": "git+https://github.com/nikporras/Disco.git"
   },
   "bugs": {
-    "url": "https://github.com/harry0703/MangoDisk/issues"
+    "url": "https://github.com/nikporras/Disco/issues"
   },
   "type": "module",
   "scripts": {

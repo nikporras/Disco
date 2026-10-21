@@ -374,7 +374,7 @@ pub(super) fn impact_plan(
     let erased_paths: &CFArray =
         unsafe { &*((&*paths as *const CFArray<CFString>).cast::<CFArray>()) };
     let queue = DispatchQueue::new(
-        "app.mangodisk.analysis-change-impact",
+        "io.github.nikporras.disco.analysis-change-impact",
         DispatchQueueAttr::SERIAL,
     );
     let mut callback_context = Box::new(ImpactCallbackContext {
@@ -641,7 +641,7 @@ fn run_monitor_owner(
     // created, the stream immediately enters the RAII guard so later unwinding cannot leak the
     // callback context.
     let queue = DispatchQueue::new(
-        "app.mangodisk.cache-dirty-monitor",
+        "io.github.nikporras.disco.cache-dirty-monitor",
         DispatchQueueAttr::SERIAL,
     );
     let mut callback_context = Box::new(CallbackContext {

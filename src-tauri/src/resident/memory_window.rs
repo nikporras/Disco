@@ -23,7 +23,7 @@ pub fn open(app: &tauri::AppHandle) -> tauri::Result<()> {
         };
         let window =
             WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("memory-settings.html".into()))
-                .title("MangoDisk")
+                .title("Disco")
                 .inner_size(520.0, height)
                 .min_inner_size(420.0, minimum_height)
                 .center()

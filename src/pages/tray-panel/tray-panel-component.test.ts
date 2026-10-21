@@ -126,7 +126,7 @@ function render(
           locale: 'en',
         }),
       ],
-      stubs: { MdIcon: true, MdIconMangodisk: true, MdNativeFileIcon: !nativeIcons },
+      stubs: { MdIcon: true, MdIconDisco: true, MdNativeFileIcon: !nativeIcons },
     },
   });
   wrappers.push(wrapper);

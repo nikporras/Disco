@@ -30,6 +30,6 @@ requires_app_close = false
 
 [verification]
 lifecycle = "verified"
-evidence = "The matcher selects only files ending in crdownload, download, partial, or part within three levels of Downloads and applies MangoDisk's seven-day age gate; completed downloads and recent partial transfers are excluded"
+evidence = "The matcher selects only files ending in crdownload, download, partial, or part within three levels of Downloads and applies Disco's seven-day age gate; completed downloads and recent partial transfers are excluded"
 verified_at = "2026-07-17"
 verified_platform = "windows"

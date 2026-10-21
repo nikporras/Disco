@@ -132,7 +132,7 @@ fn ensure_created(app: &tauri::AppHandle) -> tauri::Result<()> {
         let started = std::time::Instant::now();
         let builder =
             WebviewWindowBuilder::new(app, PANEL_LABEL, WebviewUrl::App("tray-panel.html".into()))
-                .title("MangoDisk")
+                .title("Disco")
                 .inner_size(WIDTH, HEIGHT)
                 .resizable(false)
                 .decorations(false)

@@ -15,7 +15,7 @@ withDefaults(
 
 <template>
   <img
-    class="mangodisk-icon"
+    class="disco-icon"
     :src="APP_ICON_PATH"
     :width="size"
     :height="size"
@@ -25,7 +25,7 @@ withDefaults(
 </template>
 
 <style scoped>
-.mangodisk-icon {
+.disco-icon {
   display: block;
   flex: none;
   object-fit: contain;
